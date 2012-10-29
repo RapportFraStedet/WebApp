@@ -1,0 +1,14 @@
+﻿body
+{
+    background-image: url('images/phone-p.jpg');
+    background-repeat: no-repeat;
+}
+iframe
+{
+    border-style: none;
+    height: 480px;
+    width: 320px;
+    position: fixed;
+    top: 79px;
+    left: 25px;
+}

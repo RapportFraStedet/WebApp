@@ -1,0 +1,17 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+    Rune Tvilum -- Developer -- @runetvilum
+	Erling Kristensen
+	Anette Rosengård Poulsen
+
+# THANKS
+
+    
+
+# TECHNOLOGY COLOPHON
+
+    HTML5, CSS3
+    jQuery, Modernizr
+	jQuery Mobile, OpenLayers
