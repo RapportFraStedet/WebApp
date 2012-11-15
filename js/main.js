@@ -1,20 +1,18 @@
 ﻿/*
-  Copyright 2012, MapGuideForm user group, Frederikssund Kommune and Helsingør Kommune - att. Anette Poulsen and Erling Kristensen
-  
-  This file is part of "RapportFraStedet". 
-  "RapportFraStedet" is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
-  "RapportFraStedet" is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License along with "RapportFraStedet". If not, see <http://www.gnu.org/licenses/>.
-*/
-var url = "http://ec2-46-137-153-98.eu-west-1.compute.amazonaws.com/RapportFraStedet/api/kommune.aspx";
+Copyright 2012, MapGuideForm user group, Frederikssund Kommune and Helsingør Kommune - att. Anette Poulsen and Erling Kristensen
+
+This file is part of "RapportFraStedet".
+"RapportFraStedet" is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
+"RapportFraStedet" is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with "RapportFraStedet". If not, see <http://www.gnu.org/licenses/>.
+ */
+var url = "http://service.rapportfrastedet.dk/RapportFraStedet/api/kommune.aspx";
 //var url = "http://rtv04/RapportFraStedet/api/kommune.aspx";
 var imageId;
 var x = 0;
 var y = 0;
-
 $(document).bind("mobileinit", function () {
 	$.mobile.loadingMessageTextVisible = true;
-	
 });
 $('[data-role=page]').live('pageshow', function (event, ui) {
 	try {
@@ -82,7 +80,6 @@ $('[data-role=dialog]').live('pageshow', function (event, ui) {
 	} catch (err) {}
 	
 });
-
 
 $(document).ready(function (event) {
 	$(window).bind("resize orientationchange", function (e) {
@@ -180,58 +177,10 @@ $(document).bind("pagebeforechange", function (e, data) {
 	}
 });
 
-
-
-
 //window.BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.BlobBuilder;
 
 $('#Progress').live('pageshow', function (event) {
-	if (window.FormData) {
-		var form = $("#rapportForm")[0];
-		var formData = new FormData(form);
-		$(".imageCamera").each(function () {
-			var id = this.id.replace('B', '');
-			formData.append(id, this.src);
-		});
-		if ($(".current > span").hasClass("animate"))
-			$(".current > span").removeClass("animate");
-		var xhr = new XMLHttpRequest();
-		xhr.open('POST', Rfs.url + "/api/SaveFormsData.aspx", true);
-		xhr.onerror = function () {
-			alert("error");
-		};
-		xhr.onload = function (e) {
-			$(".current > span").width("100%");
-			if (this.status == 200) {
-				$.mobile.changePage("#Kvittering", {
-					transition : "slide"
-				});
-			} else {
-				var response = JSON.parse(this.response);
-				$("#errorMessage").html("<h3>" + response.Message + "</h3><p>" + response.ExceptionMessage + "</p>");
-				$.mobile.changePage("#KvitteringError", {
-					transition : "slide"
-				});
-			}
-		};
-		xhr.upload.onprogress = function (e) {
-			if (e.lengthComputable) {
-				$(".current > span").width(e.loaded / e.total * 100 + "%");
-			}
-		};
-		xhr.send(formData);
-	} else {
-		$(".current > span").width("100%");
-		if (!$(".current > span").hasClass("animate"))
-			$(".current > span").addClass("animate");
-		var form = $("#rapportForm")[0];
-		form.action = Rfs.url + "/api/SaveFormsData.aspx";
-		form.method = "post";
-		form.enctype = "multipart/form-data";
-		form.target = "hiddenIFrame";
-		form.submit();
-		$.mobile.changePage("#Kvittering");
-	}
+	uploadCamera();
 });
 
 var Rfs = {
@@ -274,7 +223,7 @@ var Rfs = {
 							markup += "><a href='#Kommune?nr=" + kommune.Nr + "' data-transition='slide'>";
 						}
 						if (kommune.Logo != '') {
-							markup += "<img src='http://ec2-46-137-153-98.eu-west-1.compute.amazonaws.com/RapportFraStedet/Images/Kommuner/" + kommune.Logo + "' />"
+							markup += "<img src='http://service.rapportfrastedet.dk/RapportFraStedet/Images/Kommuner/" + kommune.Logo + "' />"
 						}
 						markup += "<h1>" + kommune.Navn + "</h1>";
 						if (kommune.ModtagerIndberetning == 0) {
@@ -382,7 +331,7 @@ var Rfs = {
 		var header = page.children(":jqmData(role=header)");
 		var markup = "";
 		var img = header.find("img");
-		img[0].src = "http://ec2-46-137-153-98.eu-west-1.compute.amazonaws.com/RapportFraStedet/Images/Kommuner/" + Rfs.kommune.Logo;
+		img[0].src = "http://service.rapportfrastedet.dk/RapportFraStedet/Images/Kommuner/" + Rfs.kommune.Logo;
 		if (Rfs.kommune.Logo == '') {
 			img[0].style.visibility = "hidden";
 		} else {
@@ -529,6 +478,8 @@ var Rfs = {
 										search.url = ext.url[0].replace(/%26/gi, '&');
 										search.x1 = ext.x1[0];
 										search.y1 = ext.y1[0];
+										/*if (ext.zoom)
+										search.zoom = ext.zoom[0];*/
 										search.projection = ext.projection[0];
 										oiorest.items.push(search);
 										break;
@@ -960,32 +911,33 @@ var Rfs = {
 		//$(markup).appendTo("#rapportForm").trigger("create");
 		$("#rapportForm").html(markup).trigger("create");
 		//page.trigger("create");
-		$(':file').bind('change', function (e) {
-			imageId = this.id;
-			if (html5File()) {
-				var blob = this.files[0]; // FileList object
-				if (blob.type.match('image.*')) {
-					var reader = new FileReader();
-					
-					// Closure to capture the file information.
-					reader.onload = (function (theFile) {
-						return function (e) {
-							$("#A" + imageId).attr("src", e.target.result).css('display', 'inline').removeClass('imageCamera');
-						};
-					})(blob);
-					
-					// Read in the image file as a data URL.
-					reader.readAsDataURL(blob);
-				}
-			} else {
-				$("#A" + imageId).val(this.value).css('display', 'inline-block');
-			}
-		});
+		$(':file').bind('change', this.inputChanged);
 		
 		$("#rapportForm").validate();
 		Rfs.showInfo = true;
 		createMap();
 		$.mobile.changePage("#Kort", options);
+	},
+	inputChanged : function (e) {
+		imageId = this.name;
+		if (html5File()) {
+			var blob = this.files[0]; // FileList object
+			if (blob.type.match('image.*')) {
+				var reader = new FileReader();
+				
+				// Closure to capture the file information.
+				reader.onload = (function (theFile) {
+					return function (e) {
+						$("#A" + imageId).attr("src", e.target.result).css('display', 'inline').removeClass('imageCamera');
+					};
+				})(blob);
+				
+				// Read in the image file as a data URL.
+				reader.readAsDataURL(blob);
+			}
+		} else {
+			$("#A" + imageId).val(this.value).css('display', 'inline-block');
+		}
 	},
 	showPosition : function () {
 		$.mobile.showPageLoadingMsg("a", "Henter temaer...", false);
@@ -1205,7 +1157,7 @@ Search = function (id, title, checked) {
 	this.selection1 = null;
 	this.selection2 = null;
 	this.selection3 = null;
-	
+	//this.zoom = null;
 	var self = this;
 	
 	var searchList = $("<ul>", {
@@ -1434,6 +1386,10 @@ Search = function (id, title, checked) {
 									pointRadius : 10
 								})
 							]);
+						/*if (self.zoom) {
+						var o = self.zoom / 2;
+						self.map.zoomToExtent([point.x - o, point.y - o, point.x + o, point.y + o]);
+						} else*/
 						map.zoomToExtent(vector.getDataExtent());
 					}
 					var page = $("#Kort");
@@ -1462,7 +1418,7 @@ function getPath(obj, path) {
 var apiKey = "AuNxzdIgj_DsnHh_sCAkkhlwPbfe1B-m890rn4sjfAG1niRi3lCjtxunctjRCn-Q";
 
 // initialize map when page ready
-var map, activeControl, pointControl, pathControl, polygonControl, modifyControl, removeControl, navigationControl, redline, vector, crosshairsLayer, crosshairMarker, icon;
+var map, activeControl, pointControl, pathControl, polygonControl, modifyControl, removeControl, navigationControl, redline, vector, crosshairsLayer, crosshairMarker, icon, geolocate, startLocate;
 function Point(item) {
 	$("#tegnPunkt").addClass('checked');
 	$("#tegnLinie").removeClass('checked');
@@ -1578,6 +1534,7 @@ function Move() {
 	}
 }
 function initMap() {
+	startLocate = true;
 	var colorDefault = "#ff6600";
 	var colorSelect = "#ff9900";
 	var colorTemporary = "#ff3300";
@@ -1717,12 +1674,12 @@ function initMap() {
 				enableKinetic : true
 			}
 		});
-	var geolocate = new OpenLayers.Control.Geolocate({
+	geolocate = new OpenLayers.Control.Geolocate({
 			id : 'locate-control',
 			geolocationOptions : {
 				enableHighAccuracy : true,
 				maximumAge : 0,
-				timeout : 5000
+				timeout : 10000
 			}
 		});
 	//geolocate.watch = true;
@@ -1732,6 +1689,23 @@ function initMap() {
 		strokeColor : '#f00',
 		strokeOpacity : 0.6
 	};
+	geolocate.events.register("locationfailed", this, function (e) {
+		var markup = "<p>";
+		switch (e.error.code) {
+		case 1:
+			markup += "Det er ikke tilladt at bruge GPS enheden";
+			break;
+		case 2:
+			markup += "Der kunne ikke opnås en position";
+			break;
+		case 3:
+			markup += "Der skete en timeout ved bestemmelse af positionen";
+			break;
+		}
+		markup += "</p><p>" + e.error.message + "</p>";
+		$("#LocationErrorMessage").html(markup);
+		$("#LocationError").popup("open");
+	});
 	geolocate.events.register("locationupdated", this, function (e) {
 		Rfs.lat = e.position.coords.latitude;
 		Rfs.lon = e.position.coords.longitude;
@@ -1795,21 +1769,28 @@ function initMap() {
 	$(window).bind("resize orientationchange", function (e) {
 		fixContentHeight();
 	});
+	map.events.register("zoomend", this, function (e) {
+		if (startLocate) {
+			startLocate = false;
+			locate();
+		}
+	});
 	createMap();
 	
 }
 function locate() {
-	var control = map.getControlsBy("id", "locate-control")[0];
-	if (control.active) {
-		control.getCurrentLocation();
+	//var control = map.getControlsBy("id", "locate-control")[0];
+	if (geolocate.active) {
+		geolocate.getCurrentLocation();
 	} else {
-		control.activate();
+		geolocate.activate();
 	}
 }
 
 function createMap() {
 	if (map && Rfs.mapSet) {
-		geolocateRequest = true;
+		geolocate.deactivate();
+		startLocate = true;
 		if (crosshairMarker)
 			crosshairsLayer.removeMarker(crosshairMarker);
 		redline.removeAllFeatures();
@@ -1952,8 +1933,9 @@ function createMap() {
 			$('#layerslist').listview('refresh');
 			map.zoomToMaxExtent();
 		}
-		if (map.baseLayer)
-			locate();
+		/*if (map.baseLayer && !geolocate.active){
+		geolocate.activate();
+		}*/
 	}
 }
 
@@ -1995,6 +1977,13 @@ function mapguide(m) {
 					if (m.Extension[0].Options && m.Extension[0].Options[0].useHttpTile && m.Extension[0].Options[0].useHttpTile[0] == "true") {
 						useHttpTile = true;
 					}
+					var format = '';
+					if (m.Extension[0].Options && m.Extension[0].Options[0].format) {
+						format = m.Extension[0].Options[0].format[0];
+					}
+					if (m.Extension[0].ImageFormat) {
+						format = m.Extension[0].ImageFormat[0];
+					}
 					var options = {
 						isBaseLayer : isBaseLayer,
 						useOverlay : useOverlay,
@@ -2003,12 +1992,15 @@ function mapguide(m) {
 						useHttpTile : useHttpTile,
 						maxExtent : new OpenLayers.Bounds.fromArray(data.extent)
 					};
+					
 					var layer;
 					//HttpTiled
 					if (useHttpTile) {
 						var params = {
 							basemaplayergroupname : data.groups[0].groupName
 						};
+						if (format != '')
+							params['format'] = format;
 						options["scales"] = data.FiniteDisplayScales;
 						layer = new OpenLayers.Layer.MapGuide(data.mapTitle, m.Extension[0].Options[0].tileCacheUrl[0].split(","), params, options);
 					}
@@ -2020,6 +2012,8 @@ function mapguide(m) {
 							session : data.sessionId,
 							behavior : 2
 						};
+						if (format != '')
+							params['format'] = format;
 						options["maxResolution"] = "auto";
 						options["maxScale"] = 1;
 						options["minScale"] = 1000000000000;
@@ -2033,12 +2027,15 @@ function mapguide(m) {
 							session : data.sessionId,
 							basemaplayergroupname : data.groups[0].groupName
 						};
+						if (format != '')
+							params['format'] = format;
 						options["scales"] = data.FiniteDisplayScales;
 						layer = new OpenLayers.Layer.MapGuide(data.mapTitle, Rfs.tema.MapAgent, params, options);
 					}
 					map.addLayer(layer);
 					$("#map").css("background-color", data.backgroundColor);
-					map.zoomToExtent(layer.maxExtent);
+					if (startLocate)
+						map.zoomToExtent(layer.maxExtent);
 					
 					if (useOverlay) {
 						map.removeLayer(redline, false);
@@ -2051,9 +2048,9 @@ function mapguide(m) {
 						addLayerToList(layer);
 						$('#layerslist').listview('refresh');
 					}
-					if (map.baseLayer)
-						locate();
-					
+					/*if (map.baseLayer && !geolocate.active){
+					geolocate.activate();
+					}*/
 				},
 				error : function (jqXHR, textStatus, errorThrown) {
 					alert(textStatus);

@@ -58,7 +58,7 @@
             <p>Rapporter her, så hjælper du med til at holde kommunen kørende.</p>
             <a onclick="geoLocate()" data-role="button" data-theme="b" >Start</a>
             <!-- <label data-inline="true"><input type="checkbox" name="checkbox-0" onclick="velkomst()" />Vis ikke velkomst igen</label> -->
-            <cite>Version 1.6</cite> 
+            <cite>Version 1.7</cite> 
 			<!--[if lt IE 9]>
 			<p>Du bruger en forældet browser. <a href="http://browsehappy.com/">Upgrader din browser</a> eller <a href="http://www.google.com/chromeframe/?redirect=true">installer Google Chrome Frame</a> for en bedre oplevelse af dette site.</p>
 			<![endif]-->
@@ -257,6 +257,10 @@
 			<a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Luk</a>
 			<p>Det er ikke tilladt at indberette på valgte placering.</p>
             <p>Ret placeringen og prøv igen.</p>
+		</div>
+		<div data-role="popup" id="LocationError" class="ui-content" data-theme="e" style="max-width:350px;" data-history="false" >
+			<a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Luk</a>
+			<div id="LocationErrorMessage"></div>
 		</div>
         <div data-role="popup" id="Div2" data-overlay-theme="a" data-theme="c" style="max-width:400px;" class="ui-corner-all" data-history="false">
 			<div data-role="header" data-theme="a" class="ui-corner-top">
