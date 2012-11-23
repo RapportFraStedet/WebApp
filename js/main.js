@@ -6,6 +6,7 @@ This file is part of "RapportFraStedet".
 "RapportFraStedet" is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with "RapportFraStedet". If not, see <http://www.gnu.org/licenses/>.
  */
+
 var url = "http://service.rapportfrastedet.dk/RapportFraStedet/api/kommune.aspx";
 //var url = "http://rtv04/RapportFraStedet/api/kommune.aspx";
 var imageId;
@@ -136,6 +137,9 @@ $(document).bind('pageinit', function (e) {
 		} else if (u.hash.search(/^#Kommune/) !== -1) {
 			e.preventDefault();
 			Rfs.showKommune(u, {});
+		} else if (Rfs.kommune) {
+			e.preventDefault();
+			Rfs.showKommune(u, {});
 		} else if ($('#app').length > 0) {
 			var ua = navigator.userAgent.toLowerCase();
 			if (ua.indexOf("android") > -1) {
@@ -192,6 +196,7 @@ var Rfs = {
 	kommuner : null,
 	kommune : null,
 	useDrawControl : false,
+	showMarker : false,
 	showInfo : true,
 	lat : 0,
 	lon : 0,
@@ -212,6 +217,9 @@ var Rfs = {
 				dataType : 'jsonp',
 				success : function (data) {
 					Rfs.kommuner = data;
+					Rfs.kommune = null;
+					Rfs.tema = null;
+					Rfs.temaer = null;
 					var markup = "";
 					for (var i = 0; i < data.length; i++) {
 						var kommune = data[i];
@@ -251,8 +259,11 @@ var Rfs = {
 	showKommune : function (urlObj, options) {
 		options.dataUrl = urlObj.hash;
 		var nr = urlObj.hash.replace(/.*nr=/, "");
-		if (nr == "#Kommune") {
-			$.mobile.changePage($("#Kommune"), options);
+		/*if (nr == "#Kommune") {
+		$.mobile.changePage($("#Kommune"), options);
+		} else {*/
+		if (Rfs.kommune && Rfs.kommune.Nr == nr) {
+			Rfs.showThemes(urlObj, options);
 		} else {
 			if (Rfs.kommuner != null) {
 				for (var i = 0; i < Rfs.kommuner.length; i++) {
@@ -272,26 +283,27 @@ var Rfs = {
 					},
 					success : function (data) {
 						Rfs.kommune = data;
-						if (data.ModtagerIndberetning) {
-							$.mobile.changePage("#Kommune?nr=" + data.Nr);
+						Rfs.showThemes(urlObj, options);
+						/*if (data.ModtagerIndberetning) {
+						$.mobile.changePage("#Kommune?nr=" + data.Nr);
 						} else {
-							var page = $("#ModtagerIkkeIndberetning");
-							var content = page.children(":jqmData(role=content)");
-							var markup = "";
-							markup += "<h2>Du står i " + data.Navn + " Kommune</h2>";
-							markup += "<p>RapportFraStedet kan ikke indberette til denne kommune!</p>";
-							if (Rfs.kommune.Besked != "") {
-								markup += "<p>" + data.Besked + "</p>"
-							}
-							if (data.URL != "") {
-								markup += "<a href='" + data.URL + "' rel='external' data-ajax='false' data-role='button'>Kontakt</a>";
-							}
-							markup += "<p>Du kan vælge at indberette til en anden kommune.</p>";
-							markup += "<a href='#AlleKommuner' data-role='button' data-theme='b' >Vælg kommune</a>";
-							content.html(markup);
-							page.trigger("create");
-							$.mobile.changePage("#ModtagerIkkeIndberetning");
+						var page = $("#ModtagerIkkeIndberetning");
+						var content = page.children(":jqmData(role=content)");
+						var markup = "";
+						markup += "<h2>Du står i " + data.Navn + " Kommune</h2>";
+						markup += "<p>RapportFraStedet kan ikke indberette til denne kommune!</p>";
+						if (Rfs.kommune.Besked != "") {
+						markup += "<p>" + data.Besked + "</p>"
 						}
+						if (data.URL != "") {
+						markup += "<a href='" + data.URL + "' rel='external' data-ajax='false' data-role='button'>Kontakt</a>";
+						}
+						markup += "<p>Du kan vælge at indberette til en anden kommune.</p>";
+						markup += "<a href='#AlleKommuner' data-role='button' data-theme='b' >Vælg kommune</a>";
+						content.html(markup);
+						page.trigger("create");
+						$.mobile.changePage("#ModtagerIkkeIndberetning");
+						}*/
 					},
 					error : function (jqXHR, textStatus, errorThrown) {
 						$.mobile.changePage("#ShowKommunerError");
@@ -301,30 +313,80 @@ var Rfs = {
 					}
 				});
 			} else {
-				$.mobile.showPageLoadingMsg("a", "Henter temaer...", false);
+				/*$.mobile.showPageLoadingMsg("a", "Henter temaer...", false);
 				$.ajax({
-					url : Rfs.kommune.URL + "/api/Tema.aspx",
-					dataType : 'jsonp',
-					data : {
-						nr : Rfs.kommune.Nr,
-						x : x,
-						y : y
-					},
-					success : function (data) {
-						Rfs.createKommune(data);
-						var page = $("#Kommune");
-						$.mobile.changePage(page, options);
-					},
-					error : function () {
-						$.mobile.changePage("#ShowKommunerError");
-					},
-					complete : function () {
-						$.mobile.hidePageLoadingMsg();
-					}
-				});
+				url : Rfs.kommune.URL + "/api/Tema.aspx",
+				dataType : 'jsonp',
+				data : {
+				nr : Rfs.kommune.Nr,
+				x : x,
+				y : y
+				},
+				success : function (data) {
+				Rfs.createKommune(data);
+				var page = $("#Kommune");
+				$.mobile.changePage(page, options);
+				},
+				error : function () {
+				$.mobile.changePage("#ShowKommunerError");
+				},
+				complete : function () {
+				$.mobile.hidePageLoadingMsg();
+				}
+				});*/
+				Rfs.showThemes(urlObj, options);
 			}
 		}
+		
 	},
+	showThemes : function (urlObj, options) {
+		Rfs.tema = null;
+		if (Rfs.temaer) {
+			var page = $("#Kommune");
+			$.mobile.changePage(page, options);
+		} else if (Rfs.kommune.ModtagerIndberetning) {
+			$.mobile.showPageLoadingMsg("a", "Henter temaer...", false);
+			$.ajax({
+				url : Rfs.kommune.URL + "/api/Tema.aspx",
+				dataType : 'jsonp',
+				data : {
+					nr : Rfs.kommune.Nr,
+					x : x,
+					y : y
+				},
+				success : function (data) {
+					Rfs.createKommune(data);
+					var page = $("#Kommune");
+					$.mobile.changePage(page, options);
+				},
+				error : function () {
+					$.mobile.changePage("#ShowKommunerError");
+				},
+				complete : function () {
+					$.mobile.hidePageLoadingMsg();
+				}
+			});
+			
+		} else {
+			var page = $("#ModtagerIkkeIndberetning");
+			var content = page.children(":jqmData(role=content)");
+			var markup = "";
+			markup += "<h2>Du står i " + data.Navn + " Kommune</h2>";
+			markup += "<p>RapportFraStedet kan ikke indberette til denne kommune!</p>";
+			if (Rfs.kommune.Besked != "") {
+				markup += "<p>" + data.Besked + "</p>"
+			}
+			if (data.URL != "") {
+				markup += "<a href='" + data.URL + "' rel='external' data-ajax='false' data-role='button'>Kontakt</a>";
+			}
+			markup += "<p>Du kan vælge at indberette til en anden kommune.</p>";
+			markup += "<a href='#AlleKommuner' data-role='button' data-theme='b' >Vælg kommune</a>";
+			content.html(markup);
+			page.trigger("create");
+			$.mobile.changePage("#ModtagerIkkeIndberetning");
+		}
+	},
+	
 	createKommune : function (data) {
 		Rfs.temaer = data;
 		var page = $("#Kommune");
@@ -367,30 +429,54 @@ var Rfs = {
 		var params = urlObj.hash.split('&');
 		var id = params[0].replace(/.*id=/, "");
 		var nr = params[1].replace(/.*nr=/, "");
-		if (Rfs.temaer == null) {
-			
-			if (Rfs.kommune && Rfs.kommune.Nr == nr) {
-				$.mobile.showPageLoadingMsg("a", "Henter tema...", false);
-				$.ajax({
-					url : Rfs.kommune.URL + "/api/Tema.aspx",
-					dataType : 'jsonp',
-					data : {
-						nr : nr,
-						x : x,
-						y : y
-					},
-					success : function (data) {
-						Rfs.createKommune(data);
-						Rfs.showTema(urlObj, options);
-					},
-					error : function () {
-						$.mobile.changePage("#ShowKommunerError");
-					},
-					complete : function () {
-						$.mobile.hidePageLoadingMsg();
-					}
-				});
+		if (Rfs.kommune && Rfs.kommune.Nr == nr) {
+			if (Rfs.tema && Rfs.tema.Id == id) {
+				Rfs.createTema(urlObj, options);
 			} else {
+				Rfs.tema = null;
+				if (Rfs.temaer != null) {
+					for (var i = 0; i < Rfs.temaer.length; i++) {
+						if (Rfs.temaer[i].Id == id && Rfs.temaer[i].Nr == nr) {
+							Rfs.tema = Rfs.temaer[i];
+							break;
+						}
+					}
+				}
+				if (Rfs.tema == null) {
+					$.mobile.showPageLoadingMsg("a", "Henter tema...", false);
+					$.ajax({
+						url : Rfs.kommune.URL + "/api/Tema.aspx",
+						dataType : 'jsonp',
+						data : {
+							nr : nr,
+							id : id
+						},
+						success : function (data) {
+							Rfs.tema = data;
+							Rfs.createTema(urlObj, options);
+						},
+						error : function () {
+							$.mobile.changePage("#ShowKommunerError");
+						},
+						complete : function () {
+							$.mobile.hidePageLoadingMsg();
+						}
+					});
+				} else {
+					Rfs.createTema(urlObj, options);
+				}
+				
+			}
+		} else {
+			if (Rfs.kommuner != null) {
+				for (var i = 0; i < Rfs.kommuner.length; i++) {
+					if (Rfs.kommuner[i].Nr == nr) {
+						Rfs.kommune = Rfs.kommuner[i];
+						break;
+					}
+				}
+			}
+			if (Rfs.kommune == null) {
 				$.mobile.showPageLoadingMsg("a", "Henter kommune...", false);
 				$.ajax({
 					url : url,
@@ -409,173 +495,179 @@ var Rfs = {
 						$.mobile.hidePageLoadingMsg();
 					}
 				});
-				
+			} else {
+				Rfs.showTema(urlObj, options);
 			}
-		} else {
-			for (var i = 0; i < Rfs.temaer.length; i++) {
-				if (Rfs.temaer[i].Id == id && Rfs.temaer[i].Nr == nr) {
-					Rfs.tema = Rfs.temaer[i];
-					break;
-				}
-			}
-			if (Rfs.tema != null) {
-				$.mobile.showPageLoadingMsg("a", "Henter tema...", false);
-				
-				$('#tegnList').html("<li data-role='divider' data-theme='a'>Tegneværktøjer</li>");
-				var appurl = Rfs.tema.MapAgent.toLowerCase().replace("mapagent/mapagent.fcgi", "fusion") + "/layers/mapguide/php/ApplicationDefinition.php?USERNAME=Anonymous&CLIENTAGENT=Rapport+Fra+Stedet+1.0.0&appid=" + Rfs.tema.ApplicationDefinition;
-				$.ajax({
-					url : appurl,
-					dataType : 'jsonp',
-					complete : function () {
-						$.mobile.hidePageLoadingMsg();
-					},
-					error : function (jqXHR, textStatus, errorThrown) {
-						$.mobile.changePage("#ShowKommunerError");
-					},
-					success : function (appdef) {
-						Rfs.useDrawControl = false;
-						var formsUrl = "";
-						if (appdef.ApplicationDefinition && appdef.ApplicationDefinition.length > 0 && appdef.ApplicationDefinition[0].MapSet && appdef.ApplicationDefinition[0].MapSet.length > 0) {
-							Rfs.mapSet = appdef.ApplicationDefinition[0].MapSet[0];
-							oiorest.init();
-							if (appdef.ApplicationDefinition[0].WidgetSet && appdef.ApplicationDefinition[0].WidgetSet.length > 0) {
-								for (widget in appdef.ApplicationDefinition[0].WidgetSet[0].Widget) {
-									var m = appdef.ApplicationDefinition[0].WidgetSet[0].Widget[widget];
-									switch (m.Type[0]) {
-									case "RfsSearch":
-										var ext = m.Extension[0];
-										var search = new Search(widget, m.Name[0], m.Disabled[0] == "false");
-										search.placeholder1 = ext.placeholder1[0];
-										search.url1 = ext.url1[0].replace(/%26/gi, '&');
-										search.id1 = ext.id1[0];
-										search.name1 = ext.name1[0];
-										search.chars1 = ext.chars1[0];
-										search.title1 = ext.title1[0];
-										if (ext.placeholder2)
-											search.placeholder2 = ext.placeholder2[0];
-										if (ext.url2)
-											search.url2 = ext.url2[0].replace(/%26/gi, '&');
-										if (ext.id2)
-											search.id2 = ext.id2[0];
-										if (ext.name2)
-											search.name2 = ext.name2[0];
-										if (ext.chars2)
-											search.chars2 = ext.chars2[0];
-										if (ext.title2)
-											search.title2 = ext.title2[0];
-										if (ext.placeholder3)
-											search.placeholder3 = ext.placeholder3[0];
-										if (ext.url3)
-											search.url3 = ext.url3[0].replace(/%26/gi, '&');
-										if (ext.id3)
-											search.id3 = ext.id3[0];
-										if (ext.name3)
-											search.name3 = ext.name3[0];
-										if (ext.chars3)
-											search.chars3 = ext.chars3[0];
-										if (ext.title3)
-											search.title3 = ext.title3[0];
-										search.url = ext.url[0].replace(/%26/gi, '&');
-										search.x1 = ext.x1[0];
-										search.y1 = ext.y1[0];
-										/*if (ext.zoom)
-										search.zoom = ext.zoom[0];*/
-										search.projection = ext.projection[0];
-										oiorest.items.push(search);
-										break;
-									case "RapportFraStedet":
-										var ext = m.Extension[0];
-										if (ext.type[0] != '0') {
-											$('#tegnList').html("<li data-role='divider' data-theme='a'>Tegneværktøjer</li>");
-											Rfs.useDrawControl = true;
-										}
-										if (ext.type[0] == '1' || ext.type[0] == '3' || ext.type[0] == '5' || ext.type[0] == '7')
-											$("<li id='tegnPunkt' data-icon='check'><a href='#' data-rel='back' onclick='Point()'>Punkt</a></li>").appendTo('#tegnList');
-										if (ext.type[0] == '2' || ext.type[0] == '3' || ext.type[0] == '6' || ext.type[0] == '7')
-											$("<li id='tegnLinie' data-icon='check'><a href='#' data-rel='back' onclick='Path()'>Linie</a></li>").appendTo('#tegnList');
-										if (ext.type[0] == '4' || ext.type[0] == '5' || ext.type[0] == '6' || ext.type[0] == '7')
-											$("<li id='tegnPolygon' data-icon='check'><a href='#' data-rel='back' onclick='Polygon()'>Polygon</a></li>").appendTo('#tegnList');
-										if (ext.type[0] != '0') {
-											$("<li id='tegnRediger' data-icon='check'><a href='#' data-rel='back' onclick='Modify()'>Rediger</a></li>").appendTo('#tegnList');
-											$("<li id='tegnNaviger' data-icon='check' class='checked'><a href='#' data-rel='back' onclick='Navigate()'>Naviger</a></li>").appendTo('#tegnList');
-											$('#tegnList').listview('refresh');
-										}
-										if (ext.Url) {
-											Rfs.url = ext.Url[0];
-										}
-										
-										break;
+		}
+	},
+	createTema : function (urlObj, options) {
+		if (Rfs.tema != null) {
+			$.mobile.showPageLoadingMsg("a", "Henter tema...", false);
+			
+			$('#tegnList').html("<li data-role='divider' data-theme='a'>Tegneværktøjer</li>");
+			var appurl = Rfs.tema.MapAgent.toLowerCase().replace("mapagent/mapagent.fcgi", "fusion") + "/layers/mapguide/php/ApplicationDefinition.php?USERNAME=Anonymous&CLIENTAGENT=Rapport+Fra+Stedet+1.0.0&appid=" + Rfs.tema.ApplicationDefinition;
+			$.ajax({
+				url : appurl,
+				dataType : 'jsonp',
+				complete : function () {
+					$.mobile.hidePageLoadingMsg();
+				},
+				error : function (jqXHR, textStatus, errorThrown) {
+					$.mobile.changePage("#ShowKommunerError");
+				},
+				success : function (appdef) {
+					Rfs.useDrawControl = false;
+					Rfs.showMarker = false;
+					$("#kortnavbar").hide();
+					$("#backKommune").attr('href', '#Kommune?nr=' + Rfs.kommune.Nr);
+					var formsUrl = "";
+					if (appdef.ApplicationDefinition && appdef.ApplicationDefinition.length > 0 && appdef.ApplicationDefinition[0].MapSet && appdef.ApplicationDefinition[0].MapSet.length > 0) {
+						Rfs.mapSet = appdef.ApplicationDefinition[0].MapSet[0];
+						oiorest.init();
+						if (appdef.ApplicationDefinition[0].WidgetSet && appdef.ApplicationDefinition[0].WidgetSet.length > 0) {
+							for (widget in appdef.ApplicationDefinition[0].WidgetSet[0].Widget) {
+								var m = appdef.ApplicationDefinition[0].WidgetSet[0].Widget[widget];
+								switch (m.Type[0]) {
+								case "RfsSearch":
+									var ext = m.Extension[0];
+									var search = new Search(widget, m.Name[0], m.Disabled[0] == "false");
+									search.placeholder1 = ext.placeholder1[0];
+									search.url1 = ext.url1[0].replace(/%26/gi, '&');
+									search.id1 = ext.id1[0];
+									search.name1 = ext.name1[0];
+									search.chars1 = ext.chars1[0];
+									search.title1 = ext.title1[0];
+									if (ext.placeholder2)
+										search.placeholder2 = ext.placeholder2[0];
+									if (ext.url2)
+										search.url2 = ext.url2[0].replace(/%26/gi, '&');
+									if (ext.id2)
+										search.id2 = ext.id2[0];
+									if (ext.name2)
+										search.name2 = ext.name2[0];
+									if (ext.chars2)
+										search.chars2 = ext.chars2[0];
+									if (ext.title2)
+										search.title2 = ext.title2[0];
+									if (ext.placeholder3)
+										search.placeholder3 = ext.placeholder3[0];
+									if (ext.url3)
+										search.url3 = ext.url3[0].replace(/%26/gi, '&');
+									if (ext.id3)
+										search.id3 = ext.id3[0];
+									if (ext.name3)
+										search.name3 = ext.name3[0];
+									if (ext.chars3)
+										search.chars3 = ext.chars3[0];
+									if (ext.title3)
+										search.title3 = ext.title3[0];
+									search.url = ext.url[0].replace(/%26/gi, '&');
+									search.x1 = ext.x1[0];
+									search.y1 = ext.y1[0];
+									/*if (ext.zoom)
+									search.zoom = ext.zoom[0];*/
+									search.projection = ext.projection[0];
+									oiorest.items.push(search);
+									break;
+								case "RapportFraStedet":
+									$("#kortnavbar").show();
+									var ext = m.Extension[0];
+									if (ext.type[0] != '-1' && ext.type[0] != '0') {
+										$('#tegnList').html("<li data-role='divider' data-theme='a'>Tegneværktøjer</li>");
+										Rfs.useDrawControl = true;
 									}
+									if (ext.type[0] == '-1') {
+										Rfs.showMarker = false;
+									}
+									if (ext.type[0] == '-1') {
+										Rfs.showMarker = true;
+									}
+									if (ext.type[0] == '1' || ext.type[0] == '3' || ext.type[0] == '5' || ext.type[0] == '7')
+										$("<li id='tegnPunkt' data-icon='check'><a href='#' data-rel='back' onclick='Point()'>Punkt</a></li>").appendTo('#tegnList');
+									if (ext.type[0] == '2' || ext.type[0] == '3' || ext.type[0] == '6' || ext.type[0] == '7')
+										$("<li id='tegnLinie' data-icon='check'><a href='#' data-rel='back' onclick='Path()'>Linie</a></li>").appendTo('#tegnList');
+									if (ext.type[0] == '4' || ext.type[0] == '5' || ext.type[0] == '6' || ext.type[0] == '7')
+										$("<li id='tegnPolygon' data-icon='check'><a href='#' data-rel='back' onclick='Polygon()'>Polygon</a></li>").appendTo('#tegnList');
+									if (ext.type[0] != '-1' && ext.type[0] != '0') {
+										$("<li id='tegnRediger' data-icon='check'><a href='#' data-rel='back' onclick='Modify()'>Rediger</a></li>").appendTo('#tegnList');
+										$("<li id='tegnNaviger' data-icon='check' class='checked'><a href='#' data-rel='back' onclick='Navigate()'>Naviger</a></li>").appendTo('#tegnList');
+										$('#tegnList').listview('refresh');
+									}
+									if (ext.Url) {
+										Rfs.url = ext.Url[0];
+									}
+									
+									break;
 								}
-								var page = $("#Kort");
-								var header = $("#headerKort").html("");
-								//var markup = "<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-a' data-icon='locate' onclick='locate()' >Position</a>";
-								$("<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-a' data-theme='a' data-icon='locate' onclick='locate()' >Position</a>").button().appendTo(header);
-								if (oiorest.items.length > 0) {
-									$("<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-b' data-theme='a' href='#SearchPage1' data-icon='search' >Søg</a>").button().appendTo(header);
-									if (Rfs.useDrawControl) {
-										$("<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-c' data-theme='a' href='#Tegn' data-icon='star' data-rel='popup' data-position-to='window' >Tegn</a>").button().appendTo(header);
-										$("<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-d' data-theme='a' href='#layerspage' data-icon='layers' data-rel='popup' data-position-to='window' >Kort</a>").button().appendTo(header);
-										header.removeClass('ui-grid-a');
-										header.removeClass('ui-grid-b');
-										header.addClass('ui-grid-c');
-									} else {
-										$("<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-c' data-theme='a' href='#layerspage' data-icon='layers' data-rel='popup' data-position-to='window' >Kort</a>").button().appendTo(header); ;
-										header.removeClass('ui-grid-a');
-										header.removeClass('ui-grid-c');
-										header.addClass('ui-grid-b');
-									}
-								} else if (Rfs.useDrawControl) {
-									$("<a data-theme='a' data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-c' href='#Tegn' data-icon='star' data-rel='popup' data-position-to='window' >Tegn</a>").button().appendTo(header); ;
-									$("<a data-theme='a' data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-d' href='#layerspage' data-icon='layers' data-rel='popup' data-position-to='window' >Kort</a>").button().appendTo(header); ;
+							}
+							var page = $("#Kort");
+							var header = $("#headerKort").html("");
+							//var markup = "<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-a' data-icon='locate' onclick='locate()' >Position</a>";
+							$("<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-a' data-theme='a' data-icon='locate' onclick='locate()' >Position</a>").button().appendTo(header);
+							if (oiorest.items.length > 0) {
+								$("<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-b' data-theme='a' href='#SearchPage1' data-icon='search' >Søg</a>").button().appendTo(header);
+								if (Rfs.useDrawControl) {
+									$("<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-c' data-theme='a' href='#Tegn' data-icon='star' data-rel='popup' data-position-to='window' >Tegn</a>").button().appendTo(header);
+									$("<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-d' data-theme='a' href='#layerspage' data-icon='layers' data-rel='popup' data-position-to='window' >Kort</a>").button().appendTo(header);
+									header.removeClass('ui-grid-a');
+									header.removeClass('ui-grid-b');
+									header.addClass('ui-grid-c');
+								} else {
+									$("<a data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-c' data-theme='a' href='#layerspage' data-icon='layers' data-rel='popup' data-position-to='window' >Kort</a>").button().appendTo(header); ;
 									header.removeClass('ui-grid-a');
 									header.removeClass('ui-grid-c');
 									header.addClass('ui-grid-b');
-								} else {
-									$("<a data-theme='a' data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-c' href='#layerspage' data-icon='layers' data-rel='popup' data-position-to='window' >Kort</a>").button().appendTo(header); ;
-									header.removeClass('ui-grid-b');
-									header.removeClass('ui-grid-c');
-									header.addClass('ui-grid-a');
 								}
-								//header.html(markup);
-								//page.trigger('create');
-								if (oiorest.items.length > 1) {
-									$('#searchOptionsDiv').html("<fieldset id='searchOptions' data-role='controlgroup'><legend>Søgemuligheder</legend></fieldset>");
-									for (search in oiorest.items) {
-										oiorest.items[search].createCheckBox();
-									}
-									$("#SearchPage1").trigger("create");
-								} else {
-									$('#searchOptionsDiv').html("");
-								}
-							}
-							if (Rfs.url) {
-								var url = Rfs.url.replace('Data.aspx/Index', 'api/DataApi.aspx');
-								Rfs.url = Rfs.url.substr(0, Rfs.url.indexOf('/Data.aspx/Index'));
-								$.mobile.showPageLoadingMsg("a", "Henter formular...", false);
-								$.ajax({
-									url : url,
-									dataType : 'jsonp',
-									success : function (data) {
-										Rfs.createform(data, options);
-									},
-									error : function () {
-										$.mobile.changePage("#ShowKommunerError");
-									},
-									complete : function () {
-										$.mobile.hidePageLoadingMsg();
-									}
-								});
+							} else if (Rfs.useDrawControl) {
+								$("<a data-theme='a' data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-c' href='#Tegn' data-icon='star' data-rel='popup' data-position-to='window' >Tegn</a>").button().appendTo(header); ;
+								$("<a data-theme='a' data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-d' href='#layerspage' data-icon='layers' data-rel='popup' data-position-to='window' >Kort</a>").button().appendTo(header); ;
+								header.removeClass('ui-grid-a');
+								header.removeClass('ui-grid-c');
+								header.addClass('ui-grid-b');
 							} else {
-								Rfs.showInfo = true;
-								createMap();
-								$.mobile.changePage("#Kort", options);
+								$("<a data-theme='a' data-role='button' data-mini='true' data-corners='false' data-iconpos='top' class='ui-block-c' href='#layerspage' data-icon='layers' data-rel='popup' data-position-to='window' >Kort</a>").button().appendTo(header); ;
+								header.removeClass('ui-grid-b');
+								header.removeClass('ui-grid-c');
+								header.addClass('ui-grid-a');
+							}
+							//header.html(markup);
+							//page.trigger('create');
+							if (oiorest.items.length > 1) {
+								$('#searchOptionsDiv').html("<fieldset id='searchOptions' data-role='controlgroup'><legend>Søgemuligheder</legend></fieldset>");
+								for (search in oiorest.items) {
+									oiorest.items[search].createCheckBox();
+								}
+								$("#SearchPage1").trigger("create");
+							} else {
+								$('#searchOptionsDiv').html("");
 							}
 						}
-						
+						if (Rfs.url) {
+							var url = Rfs.url.replace('Data.aspx/Index', 'api/DataApi.aspx');
+							Rfs.url = Rfs.url.substr(0, Rfs.url.indexOf('/Data.aspx/Index'));
+							$.mobile.showPageLoadingMsg("a", "Henter formular...", false);
+							$.ajax({
+								url : url,
+								dataType : 'jsonp',
+								success : function (data) {
+									Rfs.createform(data, options);
+								},
+								error : function () {
+									$.mobile.changePage("#ShowKommunerError");
+								},
+								complete : function () {
+									$.mobile.hidePageLoadingMsg();
+								}
+							});
+						} else {
+							Rfs.showInfo = true;
+							createMap();
+							$.mobile.changePage("#Kort", options);
+						}
 					}
-				});
-			}
+					
+				}
+			});
 		}
 	},
 	createform : function (data, options) {
@@ -1418,7 +1510,21 @@ function getPath(obj, path) {
 var apiKey = "AuNxzdIgj_DsnHh_sCAkkhlwPbfe1B-m890rn4sjfAG1niRi3lCjtxunctjRCn-Q";
 
 // initialize map when page ready
-var map, activeControl, pointControl, pathControl, polygonControl, modifyControl, removeControl, navigationControl, redline, vector, crosshairsLayer, crosshairMarker, icon, geolocate, startLocate;
+var map,
+activeControl,
+pointControl,
+pathControl,
+polygonControl,
+modifyControl,
+removeControl,
+navigationControl,
+redline,
+vector,
+crosshairsLayer,
+crosshairMarker,
+icon,
+geolocate,
+startLocate;
 function Point(item) {
 	$("#tegnPunkt").addClass('checked');
 	$("#tegnLinie").removeClass('checked');
@@ -1504,7 +1610,7 @@ function Navigate() {
 }
 
 function Move() {
-	if (!Rfs.useDrawControl) {
+	if (Rfs.showMarker) {
 		var extent = map.getExtent();
 		if (crosshairMarker)
 			crosshairsLayer.removeMarker(crosshairMarker);
@@ -1828,7 +1934,10 @@ function createMap() {
 				case "OpenStreetMap":
 					layer = new OpenLayers.Layer.OSM(m.Extension[0].Options[0].name[0]);
 					map.addLayer(layer);
-					addLayerToList(layer);
+					addLayerToList({
+						ol : layer,
+						name : layer.name
+					});
 					zoom = true;
 					break;
 				case "Google":
@@ -1841,7 +1950,10 @@ function createMap() {
 								//numZoomLevels: 22
 							});
 						map.addLayer(layer);
-						addLayerToList(layer);
+						addLayerToList({
+							ol : layer,
+							name : layer.name
+						});
 						zoom = true;
 						//map.zoomToMaxExtent();
 						break;
@@ -1852,7 +1964,10 @@ function createMap() {
 								//numZoomLevels: 22
 							});
 						map.addLayer(layer);
-						addLayerToList(layer);
+						addLayerToList({
+							ol : layer,
+							name : layer.name
+						});
 						zoom = true;
 						//map.zoomToMaxExtent();
 						break;
@@ -1863,7 +1978,10 @@ function createMap() {
 								//numZoomLevels: 22
 							});
 						map.addLayer(layer);
-						addLayerToList(layer);
+						addLayerToList({
+							ol : layer,
+							name : layer.name
+						});
 						zoom = true;
 						//map.zoomToMaxExtent();
 						break;
@@ -1874,7 +1992,10 @@ function createMap() {
 								//numZoomLevels: 22
 							});
 						map.addLayer(layer);
-						addLayerToList(layer);
+						addLayerToList({
+							ol : layer,
+							name : layer.name
+						});
 						zoom = true;
 						//map.zoomToMaxExtent();
 						break;
@@ -1897,7 +2018,10 @@ function createMap() {
 								//numZoomLevels: 22
 							});
 						map.addLayer(layer);
-						addLayerToList(layer);
+						addLayerToList({
+							ol : layer,
+							name : layer.name
+						});
 						zoom = true;
 						break;
 					case "Aerial":
@@ -1909,7 +2033,10 @@ function createMap() {
 								//numZoomLevels: 22
 							});
 						map.addLayer(layer);
-						addLayerToList(layer);
+						addLayerToList({
+							ol : layer,
+							name : layer.name
+						});
 						zoom = true;
 						break;
 					case "Hybrid":
@@ -1921,7 +2048,10 @@ function createMap() {
 								//numZoomLevels: 22
 							});
 						map.addLayer(layer);
-						addLayerToList(layer);
+						addLayerToList({
+							ol : layer,
+							name : layer.name
+						});
 						zoom = true;
 						break;
 					}
@@ -2045,7 +2175,20 @@ function mapguide(m) {
 						map.addLayer(vector);
 						map.addLayer(crosshairsLayer);
 					} else {
-						addLayerToList(layer);
+						for (var i = 0; i < data.layers.length; i++) {
+							var ml = data.layers[i];
+							if (ml.displayInLegend) {
+								addLayerToList({
+									ol : layer,
+									name : ml.legendLabel,
+									id : ml.uniqueId
+								});
+							}
+						}
+						addLayerToList({
+							ol : layer,
+							name : layer.name
+						});
 						$('#layerslist').listview('refresh');
 					}
 					/*if (map.baseLayer && !geolocate.active){
@@ -2086,7 +2229,12 @@ function fixContentHeight() {
 	var viewHeight = $(window).height();
 	var header = $("#headerKort");
 	var footer = $("#kortnavbar");
-	var contentHeight = viewHeight - footer.outerHeight() - header.outerHeight();
+	var contentHeight;
+	if (footer.css('display') == 'none')
+		contentHeight = viewHeight - header.outerHeight();
+	else
+		contentHeight = viewHeight - footer.outerHeight() - header.outerHeight();
+	//var contentHeight = viewHeight - footer.outerHeight() - header.outerHeight();
 	$("#map").css("height", contentHeight);
 	$("#navigation").css("top", header.outerHeight() + 10);
 	if (window.map) {
@@ -2111,35 +2259,74 @@ $('#layerslist').listview('refresh');
 }*/
 
 function addLayerToList(layer) {
-	if (layer.isBaseLayer) {
-		map.projection = layer.projection.getCode();
+	if (layer.ol.isBaseLayer) {
+		map.projection = layer.ol.projection.getCode();
 	}
 	var item = $('<li>', {
 			"data-icon" : "check",
-			"class" : layer.visibility ? "checked" : ""
+			"class" : layer.ol.visibility ? "checked" : ""
 		})
 		.append($('<a />', {
 				text : layer.name
 			})
 			.click(function () {
 				$.mobile.changePage('#Kort');
-				if (layer.isBaseLayer) {
+				if (layer.ol.CLASS_NAME == "OpenLayers.Layer.MapGuide") {
+					item.toggleClass('checked');
+					if (item.hasClass('checked')) {
+						
+						if (typeof layer.ol.params.hideLayers === "undefined") {
+							//layer.ol.params.hideLayers = layer.id
+						} else {
+							layer.ol.params.hideLayers = layer.ol.params.hideLayers.replace(layer.id, '').replace(',,', ',');
+						}
+						if (typeof layer.ol.params.showLayers === "undefined") {
+							layer.ol.params.showLayers = layer.id
+						} else {
+							layer.ol.params.showLayers = layer.ol.params.showLayers + ',' + layer.id;
+						}
+					} else {
+						if (typeof layer.ol.params.showLayers === "undefined") {
+							//layer.ol.params.showLayers = layer.id
+						} else {
+							layer.ol.params.showLayers = layer.ol.params.showLayers.replace(layer.id, '').replace(',,', ',');
+						}
+						if (typeof layer.ol.params.hideLayers === "undefined") {
+							layer.ol.params.hideLayers = layer.id
+						} else {
+							layer.ol.params.hideLayers = layer.ol.params.hideLayers + ',' + layer.id;
+						}
+					}
+					layer.ol.redraw();
+				} else if (layer.ol.isBaseLayer && layer.name == layer.ol.name) {
 					//var ce = map.getExtent();
 					//ce.transform(map.getProjectionObject(), layer.projection);
-					map.projection = layer.projection.getCode();
+					map.projection = layer.ol.projection.getCode();
 					//map.maxExtent = layer.maxExtent;
-					map.setBaseLayer(layer);
+					map.setBaseLayer(layer.ol);
 					//layer.redraw();
 					//map.zoomToExtent(layer.maxExtent);
 					//map.zoomToExtent(ce);
 				} else {
-					layer.setVisibility(!layer.getVisibility());
+					layer.ol.setVisibility(!layer.ol.getVisibility());
 				}
 			}))
 		.appendTo('#layerslist');
-	layer.events.on({
+	layer.ol.events.on({
 		'visibilitychanged' : function () {
 			$(item).toggleClass('checked');
 		}
 	});
 }
+/*Rfs.kommune = {
+Nr : 217,
+Navn : "Helsingør Kommune",
+Logo : "8DC04806-C798-4866-B5CA-F5EBD78BB8B3-164.jpg",
+URL : "http://localhost/RapportFraStedet"
+};*/
+/*Rfs.kommune = {
+Nr : 147,
+Navn : "Frederiksberg Kommune",
+Logo : "7A7B396F-8BA1-483E-AD92-CEC152A58E16-164.jpg",
+URL : "http://gis.frederiksberg.dk/RapportFraStedet"
+};*/
