@@ -2175,6 +2175,14 @@ function mapguide(m) {
 						map.addLayer(vector);
 						map.addLayer(crosshairsLayer);
 					} else {
+						
+						addLayerToList({
+							ol : layer,
+							name : layer.name
+						});
+						
+					}
+					if (!useHttpTile) {
 						for (var i = 0; i < data.layers.length; i++) {
 							var ml = data.layers[i];
 							if (ml.displayInLegend) {
@@ -2185,12 +2193,8 @@ function mapguide(m) {
 								});
 							}
 						}
-						addLayerToList({
-							ol : layer,
-							name : layer.name
-						});
-						$('#layerslist').listview('refresh');
 					}
+					$('#layerslist').listview('refresh');
 					/*if (map.baseLayer && !geolocate.active){
 					geolocate.activate();
 					}*/
@@ -2271,7 +2275,7 @@ function addLayerToList(layer) {
 			})
 			.click(function () {
 				$.mobile.changePage('#Kort');
-				if (layer.ol.CLASS_NAME == "OpenLayers.Layer.MapGuide") {
+				if (layer.ol.CLASS_NAME == "OpenLayers.Layer.MapGuide" && typeof layer.id !== "undefined") {
 					item.toggleClass('checked');
 					if (item.hasClass('checked')) {
 						
