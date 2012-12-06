@@ -197,7 +197,7 @@ var Rfs = {
 	kommune : null,
 	useDrawControl : false,
 	showMarker : false,
-	showInfo : true,
+	showInfo : false,
 	lat : 0,
 	lon : 0,
 	acc : 0,
@@ -660,7 +660,7 @@ var Rfs = {
 								}
 							});
 						} else {
-							Rfs.showInfo = true;
+							
 							createMap();
 							$.mobile.changePage("#Kort", options);
 						}
@@ -1916,17 +1916,7 @@ function createMap() {
 				var m = Rfs.mapSet.MapGroup[mapGroupItem].Map[mapItem];
 				switch (m.Type[0]) {
 				case "WMTS":
-					var name = m.Extension[0].Options[0].name[0];
-					layer = new OpenLayers.Layer.WMTS({
-							name : name,
-							url : m.Extension[0].Options[0].url[0],
-							layer : m.Extension[0].Options[0].layer[0],
-							matrixSet : m.Extension[0].Options[0].matrixSet[0],
-							format : m.Extension[0].Options[0].format[0],
-							style : m.Extension[0].Options[0].style[0],
-							opacity : 0.7,
-							isBaseLayer : false
-						});
+					wmts(m);
 					break;
 				case "MapGuide":
 					mapguide(m);
@@ -2068,7 +2058,58 @@ function createMap() {
 		}*/
 	}
 }
-
+function wmts(m) {
+	OpenLayers.ProxyHost = "proxy.cgi?url=";
+	var url = m.Extension[0].Options[0].url[0].replace(/%26/gi, '&');
+	OpenLayers.Request.GET({
+		url : url,
+		params : {
+			SERVICE : "WMTS",
+			VERSION : "1.0.0",
+			REQUEST : "GetCapabilities"
+		},
+		success : function (request) {
+			var name = m.Extension[0].Options[0].name[0];
+			OpenLayers.ProxyHost = null;
+			var options = {
+				layer : m.Extension[0].Options[0].layer[0],
+				matrixSet : m.Extension[0].Options[0].matrixSet[0],
+				style : m.Extension[0].Options[0].style[0],
+				url : url,
+				units : m.Extension[0].Options[0].units[0]
+			}
+			var doc = request.responseXML;
+			if (!doc || !doc.documentElement) {
+				doc = request.responseText;
+			}
+			var format = new OpenLayers.Format.WMTSCapabilities();
+			var capabilities = format.read(doc);
+			var layer = format.createLayer(capabilities, options);
+			layer.options.resolutions = new Array(layer.matrixIds.length);
+			for (var i = 0; i < layer.matrixIds.length; i++) {
+				layer.options.resolutions[i] = layer.matrixIds[i].scaleDenominator * 0.00028;
+			}
+			layer.options.maxExtent = capabilities.contents.tileMatrixSets[options.matrixSet].bounds;
+			layer.maxExtent = layer.options.maxExtent;
+			layer.projection = new OpenLayers.Projection(m.Extension[0].ProjectionCode[0]);
+			layer.wrapDateLine=false;
+			map.addLayer(layer);
+			map.projection = layer.projection;
+			map.units = layer.units;
+			map.maxExtent = layer.maxExtent;
+			addLayerToList({
+				ol : layer,
+				name : layer.name
+			});
+			$('#layerslist').listview('refresh');
+			map.zoomToMaxExtent();
+			locate();
+		},
+		failure : function () {
+			alert("Trouble getting capabilities doc");
+		}
+	});
+}
 function mapguide(m) {
 	var url = Rfs.tema.MapAgent.toLowerCase().replace("mapagent/mapagent.fcgi", "fusion") + "/layers/mapguide/php/";
 	$.ajax({
@@ -2120,6 +2161,7 @@ function mapguide(m) {
 						useAsyncOverlay : true,
 						singleTile : singleTile,
 						useHttpTile : useHttpTile,
+						units: "m",
 						maxExtent : new OpenLayers.Bounds.fromArray(data.extent)
 					};
 					
@@ -2164,7 +2206,7 @@ function mapguide(m) {
 					}
 					map.addLayer(layer);
 					$("#map").css("background-color", data.backgroundColor);
-					if (startLocate)
+					if (startLocate && isBaseLayer)
 						map.zoomToExtent(layer.maxExtent);
 					
 					if (useOverlay) {
@@ -2306,7 +2348,8 @@ function addLayerToList(layer) {
 					//var ce = map.getExtent();
 					//ce.transform(map.getProjectionObject(), layer.projection);
 					map.projection = layer.ol.projection.getCode();
-					//map.maxExtent = layer.maxExtent;
+					map.maxExtent = layer.maxExtent;
+					map.units = layer.units;
 					map.setBaseLayer(layer.ol);
 					//layer.redraw();
 					//map.zoomToExtent(layer.maxExtent);
