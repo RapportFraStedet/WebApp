@@ -25,13 +25,18 @@
 		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
 		<link rel="stylesheet" href="css/main.css">
         <script src="js/vendor/modernizr.custom.40852.js"></script>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <!--script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script-->
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.2.min.js"><\/script>')</script>
-		<script src="//code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+        <script src="js/vendor/path.js"></script>
+		<script src="js/vendor/init.js"></script>
+		<!--script src="//code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script-->
+		<script src="//code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.js"></script>
 		<script src="js/vendor/jquery.validate.min.js"></script>
 		<script src="js/vendor/messages_da.js"></script>
 		<script src="js/vendor/proj4js.js"></script>
 		<script src="js/vendor/OpenLayers.js"></script>
+		<script src="js/vendor/MapGuideGetFeatureInfo.js"></script>
 		<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
         <!-- scripts concatenated and minified via build script -->
 		<script src="js/plugins.js"></script>
@@ -47,7 +52,14 @@
     </head>
     <body>
         <!-- Add your site or application content here -->
-        <div id="Start" data-role="dialog" data-theme="d">
+	<div id="Loading" data-role="page" data-theme="a">
+        <div data-role="content">
+            Rapport Fra Stedet<br/>
+            version 1.8<br/>
+            loading...
+        </div>
+    </div>
+	<div id="Start" data-role="dialog" data-theme="d">
         <div data-role="header">
             <h1>Velkommen</h1>
         </div>
@@ -93,7 +105,7 @@
                 Det er ikke tilladt at indberette fra din pågældende position.</p>
             <p>
                 Ved denne indbretning skal du placere din position manuelt i kortet.</p>
-            <a href="#" data-rel="back" data-role="button" data-theme="b">Tilbage</a>
+            <a onclick="backToKommune()" data-role="button" data-theme="b">Tilbage</a>
         </div>
     </div>
     <div id="ShowKommunerError" data-role="dialog">
@@ -106,7 +118,20 @@
                 Der er sket en fejl ved hentning af alle kommuner fra serveren.</p>
             <p>
                 Vil du forsøge at hente kommunerne igen?</p>
-            <a href="#AlleKommuner" data-role="button" data-theme="b">Prøv igen</a>
+            <a onclick="backToKommuner()" data-role="button" data-theme="b">Prøv igen</a>
+        </div>
+    </div>
+	<div id="ShowKortError" data-role="dialog">
+        <div data-role="header">
+            <h1>
+                Fejl</h1>
+        </div>
+        <div data-role="content">
+            <p>
+                Der er sket en fejl ved hentning af kort data fra serveren.</p>
+            <p>
+                Vil du forsøge at hente kommunerne igen?</p>
+            <a onclick="backToKort()" data-role="button" data-theme="b">Prøv igen</a>
         </div>
     </div>
     <div id="AlleKommuner" data-role="page" data-theme="a">
@@ -115,7 +140,7 @@
             </ul>
         </div>
     </div>
-    <div id="Kommune" data-role="page" data-theme="a">
+    <div id="Kommune" data-role="page" data-theme="a" data-url="index.html&Kommune">
         <div data-role="header" data-position="fixed">
             <img style="position: relative; float: left; width: 40px; height: 40px; visibility: hidden" />
             <h1></h1>
@@ -129,7 +154,7 @@
         <div data-role="footer" data-position="fixed" data-theme="b">
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#AlleKommuner" data-transition="slide" data-direction="reverse">Vælg en anden kommune</a></li>
+                    <li><a href="#/kommuner" data-transition="slide" data-direction="reverse">Vælg en anden kommune</a></li>
                 </ul>
             </div>
         </div>
@@ -148,10 +173,10 @@
         </div>
         <div data-role="footer" data-position="fixed">
             <div id="formnavbar" class="ui-grid-c">
-                <a href="#Kort" class="ui-block-a" data-icon="back" data-role="button" data-corners="false" data-iconpos="top" data-transition="slide" data-direction="reverse">Tilbage</a>
+                <a class="ui-block-a" data-icon="back" data-role="button" data-corners="false" data-iconpos="top" onclick="backToMap()">Tilbage</a>
                 <div class="ui-block-b" style="text-align:right;">
 			        <a href="#Kommune" data-role="button" data-mini="true" data-inline="true" data-theme="a" style="margin:10px 0px 0px 0px" data-transition="slide" data-direction="reverse">1</a>
-			        <a href="#Kort" data-role="button" data-mini="true" data-inline="true" data-theme="a" style="margin:10px 2px 0px 0px" data-transition="slide" data-direction="reverse">2</a>
+			        <a href="#Tema" data-role="button" data-mini="true" data-inline="true" data-theme="a" style="margin:10px 2px 0px 0px" data-transition="slide" data-direction="reverse">2</a>
                 </div>
                 <div class="ui-block-c" style="text-align:left;">
 			        <a href="#" data-role="button" data-mini="true" data-inline="true" data-theme="b" style="margin:10px 0px 0px 2px">3</a>
@@ -168,7 +193,7 @@
 				<h3 class="ui-title">Vil du sende din indberetning?</h3>
 				<p>Klik på OK hvis du er klar til at sende din indberetning.</p>
 				<a href="#" data-role="button" data-rel="back" data-theme="c">Annuller</a>    
-				<a href="#Progress" data-role="button" data-transition="slide" data-theme="b">OK</a>  
+				<a onclick="showProgress()" data-role="button" data-theme="b">OK</a>  
 			</div>
 		</div>
     </div>
@@ -183,7 +208,7 @@
     			<span style="width: 0"><span></span></span>
 	    	</div>
 
-            <a href="#" data-role="button" data-rel="back" data-theme="b">Annuller</a>    
+            <a onclick="backToFormular()" data-role="button" data-rel="back" data-theme="b">Annuller</a>    
         </div>
     </div>
     <div id="PhotoPage" data-role="page" data-theme="a">
@@ -192,6 +217,10 @@
         <div id="photoButton" data-role="controlgroup" data-type="vertical">
             <a data-role="button" data-icon="gear" onclick="snapshot()">Tag Billede</a>
         </div>
+		<div data-role="popup" id="PhotoError" class="ui-content" data-theme="e" style="max-width:350px;" data-history="false" >
+			<a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Luk</a>
+			<div id="PhotoErrorMessage"></div>
+		</div>
     </div>
     <div id="Kvittering" data-role="dialog">
         <div data-role="header">
@@ -203,7 +232,7 @@
                 Tak for din indberetning</h3>
             <p>
                 Vil du foretage en ny indberetning?</p>
-            <a href="#Kommune" data-role="button" data-theme="b">Ny indberetning</a>
+            <a onclick="backToKommune()" data-role="button" data-theme="b">Ny indberetning</a>
         </div>
     </div>
     <div id="KvitteringError" data-role="dialog">
@@ -220,13 +249,13 @@
             <a href="#Formular" data-role="button" data-theme="b">Prøv igen</a>
         </div>
     </div>
-    <div id="Kort" data-role="page" >
+    <div id="Tema" data-role="page" data-theme="a">
         <div id="headerKort" class="ui-grid-a ui-bar-a" >
         </div>
         <div id="map">
         </div>
         <div id="kortnavbar" class="ui-grid-c ui-bar-a">
-            <a id="backKommune" href="#Kommune" class="ui-block-a" data-mini='true' data-icon="back" data-role="button" data-corners="false" data-iconpos="top" data-transition="slide" data-direction="reverse">Tilbage</a>
+            <a id="backKommune" href="#" class="ui-block-a" data-mini='true' data-icon="back" data-role="button" data-corners="false" data-iconpos="top" data-transition="slide" data-direction="reverse">Tilbage</a>
             <div class="ui-block-b" style="text-align:right;" data-theme='a'>
 		        <a href="#Kommune" data-role="button" data-mini="true" data-inline="true" data-theme="a" style="margin:10px 0px 0px 0px" data-transition="slide" data-direction="reverse">1</a>
 		        <a href="#" data-role="button" data-mini="true" data-inline="true" data-theme="b" style="margin:10px 2px 0px 0px">2</a>
@@ -243,7 +272,8 @@
             <a href="#" data-role="button" data-icon="minus" id="minus" data-iconpos="notext" ></a>
         </div>
         <div data-role="popup" id="layerspage" data-history="false">
-			<ul id="layerslist" data-role="listview" data-inset="true" style="min-width:210px;">
+		<a href="#" data-rel="back" data-role="button" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Luk</a>
+			<ul id="layerslist" data-role="listview" data-inset="true" style="min-width:210px;" data-theme="d">
 			</ul>
 		</div>
         <div data-role="popup" id="KortInfoDraw" class="ui-content" data-theme="e" style="max-width:350px;" data-history="false">
@@ -263,8 +293,8 @@
 			<a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Luk</a>
 			<div id="LocationErrorMessage"></div>
 		</div>
-        <div data-role="popup" id="Div2" data-overlay-theme="a" data-theme="c" style="max-width:400px;" class="ui-corner-all" data-history="false">
-			<div data-role="header" data-theme="a" class="ui-corner-top">
+        <div data-role="popup" id="Div2" data-overlay-theme="a" style="max-width:400px;" class="ui-corner-all" data-history="false">
+			<div data-role="header" class="ui-corner-top">
 				<h1>Send?</h1>
 			</div>
 			<div data-role="content" data-theme="d" class="ui-corner-bottom ui-content">
@@ -275,22 +305,17 @@
 			</div>
 		</div>
         <div data-role="popup" id="Tegn" data-history="false">
-            <ul id="tegnList" data-role="listview" data-inset="true" style="min-width:210px;">
+            <ul id="tegnList" data-role="listview" data-inset="true" style="min-width:210px;" data-theme="d">
             </ul>
         </div>
+		<div data-role="popup" id="info">
+			<ul id="infolist" data-role="listview" data-inset="true" style="min-width:210px;" data-theme="d">
+			</ul>
+		</div>
     </div>
-    <div id="popup" data-role="dialog" >
-        <div data-position="inline" data-theme="d" data-role="header" >
-            <h1>
-                Details</h1>
-        </div>
-        <div data-theme="c" data-role="content">
-            <ul id="details-list" data-role="listview">
-            </ul>
-        </div>
-    </div>
-    <div id="SearchPage1" data-role="page" data-back-btn-text="tilbage" data-add-back-btn="true">
+    <div id="SearchPage1" data-role="page" >
         <div data-role="header">
+			<a data-icon="back" onclick="backToMap()">tilbage</a>
             <h1>Søgning</h1>
         </div>
         <div data-role="content">
@@ -300,8 +325,9 @@
             <div id="searchResult1"></div>
         </div>
     </div>
-    <div id="SearchPage2" data-role="page" data-back-btn-text="tilbage" data-add-back-btn="true">
+    <div id="SearchPage2" data-role="page">
         <div data-role="header">
+			<a data-icon="back" onclick="backToSearch(1)">tilbage</a>
             <h1></h1>
         </div>
         <div data-role="content">
@@ -311,8 +337,9 @@
             </ul>
         </div>
     </div>
-    <div id="SearchPage3" data-role="page" data-back-btn-text="tilbage" data-add-back-btn="true">
+    <div id="SearchPage3" data-role="page" >
         <div data-role="header">
+			<a data-icon="back" onclick="backToSearch(2)">tilbage</a>
             <h1></h1>
         </div>
         <div data-role="content">

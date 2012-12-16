@@ -24,15 +24,11 @@ function uploadCamera() {
 		xhr.onload = function (e) {
 			$(".current > span").width("100%");
 			if (this.status == 200) {
-				$.mobile.changePage("#Kvittering", {
-					transition : "slide"
-				});
+				location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id + '/kvittering';
 			} else {
 				var response = JSON.parse(this.response);
 				$("#errorMessage").html("<h3>" + response.Message + "</h3><p>" + response.ExceptionMessage + "</p>");
-				$.mobile.changePage("#KvitteringError", {
-					transition : "slide"
-				});
+				location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id + '/kvitteringfejl'
 			}
 		};
 		xhr.upload.onprogress = function (e) {
@@ -59,7 +55,7 @@ function uploadCamera() {
 		$(".current > span").width("100%");
 		if (!$(".current > span").hasClass("animate"))
 			$(".current > span").addClass("animate");
-		$.mobile.changePage("#Kvittering");
+		location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id + '/kvittering';
 	}
 }
 
@@ -81,7 +77,7 @@ function markupCamera(felt) {
 		
 	}
 	if (html5Camera()) {
-		markup += "<a href='#PhotoPage?id=" + felt.Id + "' data-role='button' data-inline='true' data-transition='slide'";
+		markup += "<a href='#/kommune/" + Rfs.kommune.Nr + "/" + Rfs.tema.Id + "/kamera/" + felt.Id + "' data-role='button' data-inline='true' data-transition='slide'";
 		if (felt.Permission == 1) {
 			markup += " class='ui-disabled'";
 		}
@@ -107,7 +103,8 @@ $('#PhotoPage').live('pageshow', function (event) {
 	photoButton.css("left", (width - width2) / 2);
 	
 	var onFailSoHard = function (e) {
-		console.log('Reeeejected!', e);
+		$("#PhotoErrorMessage").html("<p>Fejl ved adgang til kameraet!</p>");
+		$("#PhotoError").popup("open");
 	};
 	
 	// Not showing vendor prefixes.
@@ -140,16 +137,11 @@ function snapshot() {
 			file.val('');
 		$("#A" + imageId).attr("src", canvas.toDataURL('image/jpeg')).css('display', 'inline').addClass('imageCamera');
 		var input = $("input[name='" + imageId + "']");
-		if (input.length > 0)
-		{
+		if (input.length > 0) {
 			input.unbind('change');
 			input[0].outerHTML = input[0].outerHTML;
 			$("input[name='" + imageId + "']").bind('change', Rfs.inputChanged);
-		}	
+		}
 	}
-	$.mobile.changePage("#Formular", {
-		transition : 'slide',
-		reverse : true
-	});
-	
+	backToFormular();
 }
