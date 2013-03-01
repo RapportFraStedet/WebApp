@@ -68,6 +68,9 @@ $('[data-role=dialog]').live('pageshow', function (event, ui) {
 			url = "#Advarsel";
 			send = true;
 			break;
+		case "Progress":
+			uploadCamera();
+			break;
 		case "Kvittering":
 			document.title = Rfs.kommune.Navn + " - " + Rfs.tema.Navn + " - Kvittering";
 			url = "#Kvittering";
@@ -178,14 +181,17 @@ $(document).bind("pagebeforechange", function (e, data) {
 			imageId = u.hash.replace(/.*id=/, "");
 			$.mobile.changePage($("#PhotoPage"));
 		}
+	} else {
+		if(data.toPage.attr('id')=="Progress" && data.options.fromPage.attr('id')!="Formular")
+		{
+			e.preventDefault();
+			$.mobile.changePage($("#Kommune"));
+		}
 	}
 });
 
 //window.BlobBuilder = window.MozBlobBuilder || window.WebKitBlobBuilder || window.BlobBuilder;
 
-$('#Progress').live('pageshow', function (event) {
-	uploadCamera();
-});
 
 var Rfs = {
 	url : null,
