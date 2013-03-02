@@ -271,6 +271,7 @@ var Rfs = {
 		if (Rfs.kommune && Rfs.kommune.Nr == nr) {
 			Rfs.showThemes(urlObj, options);
 		} else {
+			Rfs.temaer=null;
 			if (Rfs.kommuner != null) {
 				for (var i = 0; i < Rfs.kommuner.length; i++) {
 					if (Rfs.kommuner[i].Nr == nr) {
