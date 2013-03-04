@@ -143,7 +143,7 @@ $(document).bind('pageinit', function (e) {
 		} else if (Rfs.kommune) {
 			e.preventDefault();
 			Rfs.showKommune(u, {});
-		} else if ($('#app').length > 0) {
+		} else if (typeof(cordova)=="undefined") {
 			var ua = navigator.userAgent.toLowerCase();
 			if (ua.indexOf("android") > -1) {
 				$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://www.rapportfrastedet.dk/RapportFraStedet.apk' ><img src='./img/android.png' alt='Android'/></a>");
@@ -586,7 +586,7 @@ var Rfs = {
 									if (ext.type[0] == '-1') {
 										Rfs.showMarker = false;
 									}
-									if (ext.type[0] == '-1') {
+									if (ext.type[0] == '0') {
 										Rfs.showMarker = true;
 									}
 									if (ext.type[0] == '1' || ext.type[0] == '3' || ext.type[0] == '5' || ext.type[0] == '7')
