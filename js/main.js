@@ -146,7 +146,7 @@ $(document).bind('pageinit', function (e) {
 		} else if (typeof(cordova)=="undefined") {
 			var ua = navigator.userAgent.toLowerCase();
 			if (ua.indexOf("android") > -1) {
-				$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://www.rapportfrastedet.dk/RapportFraStedet.apk' ><img src='./img/android.png' alt='Android'/></a>");
+				$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://play.google.com/store/apps/details?id=dk.addin.RapportFraStedet' ><img src='./img/android.png' alt='Android'/></a>");
 			}
 			/*else if (ua.indexOf("ipad") > -1 || ua.indexOf("iphone") > -1) {
 			$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://itunes.com/apps/rapportfrastedet' ><img src='./img/apple.png' alt='Apple'/></a>");
