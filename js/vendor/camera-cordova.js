@@ -1,5 +1,5 @@
 /*
-Copyright 2012, MapGuideForm user group, Frederikssund Kommune and Helsingør Kommune - att. Anette Poulsen and Erling Kristensen
+Copyright 2012, MapGuideForm user group, Frederikssund Kommune and HelsingÃ¸r Kommune - att. Anette Poulsen and Erling Kristensen
 
 This file is part of "RapportFraStedet".
 "RapportFraStedet" is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -56,7 +56,7 @@ function fail(error) {
 function uploadCamera() {
 	images = $(".imageCamera");
 	currentImage = 0;
-	if (images.length > 0) {
+	if (images.length > 0 && images.css('display')=='inline') {
 		var image = images[currentImage];
 		currentImage++;
 		var params = $("#rapportForm").serializeJSON();
