@@ -7,90 +7,130 @@ This file is part of "RapportFraStedet".
 You should have received a copy of the GNU General Public License along with "RapportFraStedet". If not, see <http://www.gnu.org/licenses/>.
  */
 
-var url = "http://service.rapportfrastedet.dk/RapportFraStedet/api/kommune.aspx";
-//var url = "http://rtv04/RapportFraStedet/api/kommune.aspx";
+//var url = "http://service.rapportfrastedet.dk/RapportFraStedet/api/kommune.aspx";
+var url = "http://rtv04/RapportFraStedet/api/kommune.aspx";
 var imageId;
 var x = 0;
 var y = 0;
-$(document).bind("mobileinit", function () {
-	$.mobile.loadingMessageTextVisible = true;
-});
-$('[data-role=page]').live('pageshow', function (event, ui) {
-	try {
-		var send = false;
-		var url = "";
-		switch (event.currentTarget.id) {
-		case "AlleKommuner":
-			document.title = "Alle Kommuner";
-			url = "#AlleKommuner";
-			send = true;
-			break;
-		case "Kommune":
-			document.title = Rfs.kommune.Navn;
-			url = "#Kommune?nr=" + Rfs.kommune.Nr;
-			send = true;
-			break;
-		case "Kort":
-			document.title = Rfs.kommune.Navn + " - " + Rfs.tema.Navn + " - Kort";
-			url = "#Tema?id=" + Rfs.tema.Id + "&Nr=" + Rfs.kommune.Nr;
-			send = true;
-			break;
-		case "Formular":
-			document.title = Rfs.kommune.Navn + " - " + Rfs.tema.Navn;
-			url = "#Formular";
-			send = true;
-			break;
-		case "PhotoPage":
-			document.title = Rfs.kommune.Navn + " - " + Rfs.tema.Navn + " - Kamera";
-			url = "#PhotoPage";
-			send = true;
-			break;
-		}
-		if (send) {
-			_gaq.push(['_setAccount', 'UA-24623853-2']);
-			_gaq.push(['_trackPageview', url]);
-		}
-	} catch (err) {}
-	
-});
-$('[data-role=dialog]').live('pageshow', function (event, ui) {
-	try {
-		var send = false;
-		var url = "";
-		switch (event.currentTarget.id) {
-		case "Start":
-			document.title = "Rapport Fra Stedet";
-			url = "";
-			send = true;
-			break;
-		case "Advarsel":
-			document.title = Rfs.kommune.Navn + " - Advarsel";
-			url = "#Advarsel";
-			send = true;
-			break;
-		case "Progress":
-			uploadCamera();
-			break;
-		case "Kvittering":
-			document.title = Rfs.kommune.Navn + " - " + Rfs.tema.Navn + " - Kvittering";
-			url = "#Kvittering";
-			send = true;
-			break;
-		}
-		if (send) {
-			_gaq.push(['_setAccount', 'UA-24623853-2']);
-			_gaq.push(['_trackPageview', url]);
-		}
-	} catch (err) {}
-	
-});
+var vent = 10000;
 
-$(document).ready(function (event) {
-	$(window).bind("resize orientationchange", function (e) {
-		fixContentHeight();
-	});
-	Rfs.init();
-	$.support.cors = true;
+$(document).bind('pageinit', function (e) {
+	switch (e.target.id) {
+	case "Start":
+		Rfs.init();
+		var u = $.mobile.path.parseUrl(window.location.href);
+		if (u.hash.search(/^#Tema/) !== -1) {
+			e.preventDefault();
+			Rfs.showTema(u, {});
+		} else if (u.hash.search(/^#Kommune/) !== -1) {
+			e.preventDefault();
+			Rfs.showKommune(u, {});
+		} else if (Rfs.kommune) {
+			e.preventDefault();
+			Rfs.showKommune(u, {});
+		} else if (typeof(cordova) == "undefined") {
+			var ua = navigator.userAgent.toLowerCase();
+			if (ua.indexOf("android") > -1) {
+				$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://play.google.com/store/apps/details?id=dk.addin.RapportFraStedet' ><img src='./img/android.png' alt='Android'/></a>");
+			}
+			/*else if (ua.indexOf("ipad") > -1 || ua.indexOf("iphone") > -1) {
+			$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://itunes.com/apps/rapportfrastedet' ><img src='./img/apple.png' alt='Apple'/></a>");
+			}*/
+			else if (ua.indexOf("ipad") > -1 || ua.indexOf("iphone") > -1) {
+				$('#app').html("<p>Tilføj Rapport Fra Stedet som genvej. Klik på <img src='./img/genvej.jpg' alt='genvej'/> i din browser og føj til hjemmeskærm.");
+			}
+			/*else if (ua.indexOf("Windows Phone") > -1) {
+			$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://www.windowsphone.com/da-DK/marketplace' ><img src='./img/windows.png' alt='Windows Phone'/></a>");
+			}*/
+		}
+		$('[data-role=page]').on('pageshow', function (event, ui) {
+			try {
+				var send = false;
+				var url = "";
+				switch (event.currentTarget.id) {
+				case "AlleKommuner":
+					document.title = "Alle Kommuner";
+					url = "#AlleKommuner";
+					send = true;
+					break;
+				case "Kommune":
+					document.title = Rfs.kommune.Navn;
+					url = "#Kommune?nr=" + Rfs.kommune.Nr;
+					send = true;
+					break;
+				case "Kort":
+					fixContentHeight();
+					if (Rfs.showInfo) {
+						Rfs.showInfo = false;
+						if (Rfs.useDrawControl) {
+							$("#KortInfoDraw").popup("open");
+						} else {
+							$("#KortInfo").popup("open");
+						}
+					}
+					if (!window.map) {
+						initMap();
+					}
+
+					document.title = Rfs.kommune.Navn + " - " + Rfs.tema.Navn + " - Kort";
+					url = "#Tema?id=" + Rfs.tema.Id + "&Nr=" + Rfs.kommune.Nr;
+					send = true;
+					break;
+				case "Formular":
+					document.title = Rfs.kommune.Navn + " - " + Rfs.tema.Navn;
+					url = "#Formular";
+					send = true;
+					break;
+				case "PhotoPage":
+					document.title = Rfs.kommune.Navn + " - " + Rfs.tema.Navn + " - Kamera";
+					url = "#PhotoPage";
+					send = true;
+					break;
+				}
+				if (send) {
+					_gaq.push(['_setAccount', 'UA-24623853-2']);
+					_gaq.push(['_trackPageview', url]);
+				}
+			} catch (err) {}
+
+		});
+		$('[data-role=dialog]').on('pageshow', function (event, ui) {
+			try {
+				var send = false;
+				var url = "";
+				switch (event.currentTarget.id) {
+				case "Start":
+					document.title = "Rapport Fra Stedet";
+					url = "";
+					send = true;
+					break;
+				case "Advarsel":
+					document.title = Rfs.kommune.Navn + " - Advarsel";
+					url = "#Advarsel";
+					send = true;
+					break;
+				case "Progress":
+					uploadCamera();
+					break;
+				case "Kvittering":
+					document.title = Rfs.kommune.Navn + " - " + Rfs.tema.Navn + " - Kvittering";
+					url = "#Kvittering";
+					send = true;
+					break;
+				}
+				if (send) {
+					_gaq.push(['_setAccount', 'UA-24623853-2']);
+					_gaq.push(['_trackPageview', url]);
+				}
+			} catch (err) {}
+		});
+		break;
+	case "Kort":
+		$(window).bind("resize orientationchange", function (e) {
+			fixContentHeight();
+		});
+		break;
+	}
 });
 
 function geoLocate() {
@@ -121,7 +161,7 @@ function geoLocate() {
 		}, {
 			enableHighAccuracy : true,
 			maximumAge : 0,
-			timeout : 10000
+			timeout : 60000
 		});
 	} else {
 		$.mobile.changePage("#AlleKommuner", {
@@ -129,37 +169,6 @@ function geoLocate() {
 		});
 	}
 }
-
-$(document).bind('pageinit', function (e) {
-	if (e.target.id == "Start") {
-		
-		var u = $.mobile.path.parseUrl(window.location.href);
-		if (u.hash.search(/^#Tema/) !== -1) {
-			e.preventDefault();
-			Rfs.showTema(u, {});
-		} else if (u.hash.search(/^#Kommune/) !== -1) {
-			e.preventDefault();
-			Rfs.showKommune(u, {});
-		} else if (Rfs.kommune) {
-			e.preventDefault();
-			Rfs.showKommune(u, {});
-		} else if (typeof(cordova)=="undefined") {
-			var ua = navigator.userAgent.toLowerCase();
-			if (ua.indexOf("android") > -1) {
-				$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://play.google.com/store/apps/details?id=dk.addin.RapportFraStedet' ><img src='./img/android.png' alt='Android'/></a>");
-			}
-			/*else if (ua.indexOf("ipad") > -1 || ua.indexOf("iphone") > -1) {
-			$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://itunes.com/apps/rapportfrastedet' ><img src='./img/apple.png' alt='Apple'/></a>");
-			}*/
-			else if (ua.indexOf("ipad") > -1 || ua.indexOf("iphone") > -1) {
-				$('#app').html("<p>Tilføj Rapport Fra Stedet som genvej. Klik på <img src='./img/genvej.jpg' alt='genvej'/> i din browser og føj til hjemmeskærm.");
-			}
-			/*else if (ua.indexOf("Windows Phone") > -1) {
-			$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://www.windowsphone.com/da-DK/marketplace' ><img src='./img/windows.png' alt='Windows Phone'/></a>");
-			}*/
-		}
-	}
-});
 
 $(document).bind("pagebeforechange", function (e, data) {
 	if (typeof data.toPage === "string") {
@@ -182,8 +191,7 @@ $(document).bind("pagebeforechange", function (e, data) {
 			$.mobile.changePage($("#PhotoPage"));
 		}
 	} else {
-		if(data.toPage.attr('id')=="Progress" && data.options.fromPage.attr('id')!="Formular")
-		{
+		if (data.toPage.attr('id') == "Progress" && data.options.fromPage.attr('id') != "Formular") {
 			e.preventDefault();
 			$.mobile.changePage($("#Kommune"));
 		}
@@ -221,6 +229,7 @@ var Rfs = {
 			$.ajax({
 				url : url,
 				dataType : 'jsonp',
+				timeout : vent,
 				success : function (data) {
 					Rfs.kommuner = data;
 					Rfs.kommune = null;
@@ -271,7 +280,7 @@ var Rfs = {
 		if (Rfs.kommune && Rfs.kommune.Nr == nr) {
 			Rfs.showThemes(urlObj, options);
 		} else {
-			Rfs.temaer=null;
+			Rfs.temaer = null;
 			if (Rfs.kommuner != null) {
 				for (var i = 0; i < Rfs.kommuner.length; i++) {
 					if (Rfs.kommuner[i].Nr == nr) {
@@ -285,6 +294,7 @@ var Rfs = {
 				$.ajax({
 					url : url,
 					dataType : 'jsonp',
+					timeout : vent,
 					data : {
 						nr : nr
 					},
@@ -320,31 +330,10 @@ var Rfs = {
 					}
 				});
 			} else {
-				/*$.mobile.showPageLoadingMsg("a", "Henter temaer...", false);
-				$.ajax({
-				url : Rfs.kommune.URL + "/api/Tema.aspx",
-				dataType : 'jsonp',
-				data : {
-				nr : Rfs.kommune.Nr,
-				x : x,
-				y : y
-				},
-				success : function (data) {
-				Rfs.createKommune(data);
-				var page = $("#Kommune");
-				$.mobile.changePage(page, options);
-				},
-				error : function () {
-				$.mobile.changePage("#ShowKommunerError");
-				},
-				complete : function () {
-				$.mobile.hidePageLoadingMsg();
-				}
-				});*/
 				Rfs.showThemes(urlObj, options);
 			}
 		}
-		
+
 	},
 	showThemes : function (urlObj, options) {
 		Rfs.tema = null;
@@ -356,6 +345,7 @@ var Rfs = {
 			$.ajax({
 				url : Rfs.kommune.URL + "/api/Tema.aspx",
 				dataType : 'jsonp',
+				timeout : vent,
 				data : {
 					nr : Rfs.kommune.Nr,
 					x : x,
@@ -373,7 +363,7 @@ var Rfs = {
 					$.mobile.hidePageLoadingMsg();
 				}
 			});
-			
+
 		} else {
 			var page = $("#ModtagerIkkeIndberetning");
 			var content = page.children(":jqmData(role=content)");
@@ -393,7 +383,7 @@ var Rfs = {
 			$.mobile.changePage("#ModtagerIkkeIndberetning");
 		}
 	},
-	
+
 	createKommune : function (data) {
 		Rfs.temaer = data;
 		var page = $("#Kommune");
@@ -424,7 +414,7 @@ var Rfs = {
 			}
 			markup += "</a></li>";
 		}
-		
+
 		var content = page.children(":jqmData(role=content)");
 		content.find("ul").html(markup);
 		content.find("ul").listview("refresh");
@@ -454,6 +444,7 @@ var Rfs = {
 					$.ajax({
 						url : Rfs.kommune.URL + "/api/Tema.aspx",
 						dataType : 'jsonp',
+						timeout : vent,
 						data : {
 							nr : nr,
 							id : id
@@ -472,7 +463,7 @@ var Rfs = {
 				} else {
 					Rfs.createTema(urlObj, options);
 				}
-				
+
 			}
 		} else {
 			if (Rfs.kommuner != null) {
@@ -488,6 +479,7 @@ var Rfs = {
 				$.ajax({
 					url : url,
 					dataType : 'jsonp',
+					timeout : vent,
 					data : {
 						nr : nr
 					},
@@ -510,12 +502,13 @@ var Rfs = {
 	createTema : function (urlObj, options) {
 		if (Rfs.tema != null) {
 			$.mobile.showPageLoadingMsg("a", "Henter tema...", false);
-			
+
 			$('#tegnList').html("<li data-role='divider' data-theme='a'>Tegneværktøjer</li>");
 			var appurl = Rfs.tema.MapAgent.toLowerCase().replace("mapagent/mapagent.fcgi", "fusion") + "/layers/mapguide/php/ApplicationDefinition.php?USERNAME=Anonymous&CLIENTAGENT=Rapport+Fra+Stedet+1.0.0&appid=" + Rfs.tema.ApplicationDefinition;
 			$.ajax({
 				url : appurl,
 				dataType : 'jsonp',
+				timeout : vent,
 				complete : function () {
 					$.mobile.hidePageLoadingMsg();
 				},
@@ -603,7 +596,7 @@ var Rfs = {
 									if (ext.Url) {
 										Rfs.url = ext.Url[0];
 									}
-									
+
 									break;
 								}
 							}
@@ -656,6 +649,7 @@ var Rfs = {
 							$.ajax({
 								url : url,
 								dataType : 'jsonp',
+								timeout : vent,
 								success : function (data) {
 									Rfs.createform(data, options);
 								},
@@ -667,12 +661,12 @@ var Rfs = {
 								}
 							});
 						} else {
-							
+
 							createMap();
 							$.mobile.changePage("#Kort", options);
 						}
 					}
-					
+
 				}
 			});
 		}
@@ -701,21 +695,21 @@ var Rfs = {
 			var felt = felter[i];
 			if (!felt.Data)
 				felt.Data = "";
-			
+
 			if (felt.Permission == 0) {
 				handled = true;
 				switch (felt.TypeId) {
 				case 16:
 					markup += "<input type='hidden' name='Geometri' value='" + felt.Data + "' id='Geometri'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					markup += "/>";
 					break;
 				case 17:
 					markup += "<input type='hidden' name='Position' value='" + felt.Data + "' id='Position'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					markup += "/>";
 					break;
@@ -723,14 +717,14 @@ var Rfs = {
 				case 18:
 					markup += "<input type='hidden' name='Accuracy' value='" + felt.Data + "' id='Accuracy'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					markup += "/>";
 					break;
 				default:
 					markup += "<input type='hidden' name='" + felt.Id + "' value='" + felt.Data + "' id='" + felt.Id + "'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					markup += "/>";
 					break;
@@ -751,7 +745,7 @@ var Rfs = {
 					markup += felt.Name + "</label>";
 					markup += "<input type='text' id='" + felt.Id + "' name='" + felt.Id + "' value='" + felt.Data + "'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					if (felt.Permission == 1) {
 						markup += " disabled='disabled'";
@@ -768,13 +762,13 @@ var Rfs = {
 					markup += felt.Name + "</label>";
 					markup += "<select id='" + felt.Id + "' name='" + felt.Id + "' value='" + felt.Data + "'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					if (felt.Permission == 1) {
 						markup += " disabled='disabled'";
 					}
 					markup += ">";
-					markup += "<option data-placeholder='true'>-- Vælg --</option>";
+					markup += "<option value='' data-placeholder='true'>-- Vælg --</option>";
 					var selections = felt.Selections;
 					for (var j = 0; j < selections.length; j++) {
 						var selection = selections[j];
@@ -789,7 +783,7 @@ var Rfs = {
 					break;
 				case 4: //RadioButton
 					markup += "<div data-role='fieldcontain'>";
-					markup += "<fieldset data-role='controlgroup'><legend>";
+					markup += "<div data-role='controlgroup'><legend>";
 					if (felt.Required == 1) {
 						markup += "<em>*</em>";
 					}
@@ -802,14 +796,14 @@ var Rfs = {
 							markup += " checked='checked'";
 						}
 						if (felt.Required == 1) {
-							markup += " class=required";
+							markup += " class='required'";
 						}
 						if (felt.Permission == 1) {
 							markup += " disabled='disabled'";
 						}
 						markup += "/><label for='" + selection.Id + "'>" + selection.Name + "</label>";
 					}
-					markup += "</fieldset>";
+					markup += "</div>";
 					markup += "</div>";
 					break;
 				case 5: //TextArea
@@ -821,7 +815,7 @@ var Rfs = {
 					markup += felt.Name + "</label>";
 					markup += "<textarea id='" + felt.Id + "' name='" + felt.Id + "'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					if (felt.Permission == 1) {
 						markup += " disabled='disabled'";
@@ -832,24 +826,28 @@ var Rfs = {
 					markup += "</div>";
 					break;
 				case 6: //CheckBox
+				case 12: //Email ved oprettelse
+				case 13: //Email ved ændring
 					markup += "<div data-role='fieldcontain'>";
-					markup += "<fieldset data-role='controlgroup'><legend>";
+					markup += "<label for='" + felt.Id + "'>";
 					if (felt.Required == 1) {
 						markup += "<em>*</em>";
 					}
-					markup += felt.Name + "</legend>";
-					markup += "<input type='checkbox' id='" + felt.Id + "' name='" + felt.Id + "'";
-					if (felt.Data == 'true') {
-						markup += " checked='checked'";
-					}
+					markup += felt.Name + "</label>";
+					markup += "<select id='" + felt.Id + "' name='" + felt.Id + "' data-role='slider'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					if (felt.Permission == 1) {
 						markup += " disabled='disabled'";
 					}
-					markup += " /><label for='" + felt.Id + "'>" + felt.Name + "</label>";
-					markup += "</fieldset>";
+					markup += ">";
+					markup += "<option value='off'>Nej</option>";
+					if (felt.Data.toLowerCase() == 'true')
+						markup += "<option value='on' selected='selected'>Ja</option>";
+					else
+						markup += "<option value='on'>Ja</option>";
+					markup += "</select>";
 					markup += "</div>";
 					break;
 				case 7: //Email
@@ -861,7 +859,7 @@ var Rfs = {
 					markup += felt.Name + "</label>";
 					markup += "<input type='email' id='" + felt.Id + "' name='" + felt.Id + "' value='" + felt.Data + "'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					if (felt.Permission == 1) {
 						markup += " disabled='disabled'";
@@ -875,48 +873,48 @@ var Rfs = {
 				case 10: //Date
 					markup += markupDate(felt);
 					break;
-				case 12: //Email ved oprettelse
+					/*case 12: //Email ved oprettelse
 					markup += "<div data-role='fieldcontain'>";
 					markup += "<fieldset data-role='controlgroup'><legend>";
 					if (felt.Required == 1) {
-						markup += "<em>*</em>";
+					markup += "<em>*</em>";
 					}
 					markup += felt.Name + "</legend>";
 					markup += "<input type='checkbox' id='" + felt.Id + "' name='" + felt.Id + "'";
 					if (felt.Data == 'true') {
-						markup += " checked='checked'";
+					markup += " checked='checked'";
 					}
 					if (felt.Required == 1) {
-						markup += " class=required";
+					markup += " class='required'";
 					}
 					if (felt.Permission == 1) {
-						markup += " disabled='disabled'";
+					markup += " disabled='disabled'";
 					}
 					markup += " /><label for='" + felt.Id + "'>" + felt.Name + "</label>";
 					markup += "</fieldset>";
 					markup += "</div>";
 					break;
-				case 13: //Email ved ændring
+					case 13: //Email ved ændring
 					markup += "<div data-role='fieldcontain'>";
 					markup += "<fieldset data-role='controlgroup'><legend>";
 					if (felt.Required == 1) {
-						markup += "<em>*</em>";
+					markup += "<em>*</em>";
 					}
 					markup += felt.Name + "</legend>";
 					markup += "<input type='checkbox' id='" + felt.Id + "' name='" + felt.Id + "'";
 					if (felt.Data == 'true') {
-						markup += " checked='checked'";
+					markup += " checked='checked'";
 					}
 					if (felt.Required == 1) {
-						markup += " class=required";
+					markup += " class='required'";
 					}
 					if (felt.Permission == 1) {
-						markup += " disabled='disabled'";
+					markup += " disabled='disabled'";
 					}
 					markup += " /><label for='" + felt.Id + "'>" + felt.Name + "</label>";
 					markup += "</fieldset>";
 					markup += "</div>";
-					break;
+					break;*/
 				case 14: //URL link
 					markup += "<div data-role='fieldcontain'>";
 					markup += "<a data-role='button' data-inline='true' href='" + felt.Data + "'>" + felt.Name + "</a>";
@@ -931,7 +929,7 @@ var Rfs = {
 					markup += felt.Name + "</label>";
 					markup += "<input type='text' id='" + felt.Id + "' name='" + felt.Id + "' value='" + felt.Data + "'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					if (felt.Permission == 1) {
 						markup += " disabled='disabled'";
@@ -948,7 +946,7 @@ var Rfs = {
 					markup += felt.Name + "</label>";
 					markup += "<textarea id='Geometri' name='Geometri'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					if (felt.Permission == 1) {
 						markup += " disabled='disabled'";
@@ -967,7 +965,7 @@ var Rfs = {
 					markup += felt.Name + "</label>";
 					markup += "<textarea id='Position' name='Position'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					if (felt.Permission == 1) {
 						markup += " disabled='disabled'";
@@ -986,7 +984,7 @@ var Rfs = {
 					markup += felt.Name + "</label>";
 					markup += "<input type='text' id='Accuracy' name='Accuracy' value='" + felt.Data + "'";
 					if (felt.Required == 1) {
-						markup += " class=required";
+						markup += " class='required'";
 					}
 					if (felt.Permission == 1) {
 						markup += " disabled='disabled'";
@@ -1005,44 +1003,90 @@ var Rfs = {
 				}
 			}
 		}
-		
+
 		markup += "</fieldset>";
 		//$(markup).appendTo("#rapportForm").trigger("create");
 		$("#rapportForm").html(markup).trigger("create");
 		//page.trigger("create");
 		$(':file').bind('change', this.inputChanged);
-		
-		$("#rapportForm").validate();
+
+		$("#rapportForm").validate({
+			ignore : "",
+			highlight : function (element, errorClass, validClass) {
+				if (element.type && element.type == 'radio') {
+					//$(element.form).find("label[for=" + element.id + "]").addClass(errorClass).removeClass(validClass)
+					$(element.parentElement.parentElement).children().find('label').addClass('highlighterror');
+				} else if (element.type && element.type == 'textarea') {
+					$(element).addClass('highlighterror');
+				} else /*if (element.type && element.type == 'select-one')*/
+				{
+					$(element.parentElement).addClass('highlighterror');
+				}
+				/*else {
+				$(element).addClass(errorClass).removeClass(validClass);
+				$(element.form).find("label[for=" + element.id + "]")
+				.addClass(errorClass);
+				}*/
+			},
+			unhighlight : function (element, errorClass, validClass) {
+				if (element.type && element.type == 'radio') {
+					$(element.parentElement.parentElement).children().find('label').removeClass('highlighterror');
+				} else if (element.type && element.type == 'textarea') {
+					$(element).removeClass('highlighterror');
+				} else {
+					$(element.parentElement).removeClass('highlighterror');
+					/*$(element).removeClass(errorClass).addClass(validClass);
+					$(element.form).find("label[for=" + element.id + "]").removeClass(errorClass);*/
+				}
+			},
+			errorPlacement : function (error, element) {
+				if (element[0].type && element[0].type == 'radio') {
+					error.insertAfter($(element).parent().parent());
+				} else if (element[0].type && element[0].type == 'select-one') {
+					error.insertAfter($(element).parent().parent());
+				} else if (element[0].type && element[0].type == 'textarea') {
+					error.insertAfter($(element));
+				} else {
+					error.insertAfter($(element).parent());
+				}
+			}
+		});
 		Rfs.showInfo = true;
 		createMap();
 		$.mobile.changePage("#Kort", options);
 	},
 	inputChanged : function (e) {
-		imageId = this.name;
+		imageId = this.name.substring(1);
 		if (html5File()) {
 			var blob = this.files[0]; // FileList object
 			if (blob.type.match('image.*')) {
 				var reader = new FileReader();
-				
+
 				// Closure to capture the file information.
 				reader.onload = (function (theFile) {
 					return function (e) {
-						$("#A" + imageId).attr("src", e.target.result).css('display', 'inline').removeClass('imageCamera');
+						$("#A" + imageId).attr("src", e.target.result).css('display', 'inline');
+						$("#" + imageId).val(e.target.result);
+						var input = $("input[name='B" + imageId + "']");
+						if (input.length > 0) {
+							input.unbind('change');
+							input[0].outerHTML = input[0].outerHTML;
+							$("input[name='" + imageId + "']").bind('change', Rfs.inputChanged);
+						}
 					};
 				})(blob);
-				
+
 				// Read in the image file as a data URL.
 				reader.readAsDataURL(blob);
 			}
-		} else {
-			$("#A" + imageId).val(this.value).css('display', 'inline-block');
-		}
+		} 
 	},
 	showPosition : function () {
 		$.mobile.showPageLoadingMsg("a", "Henter temaer...", false);
 		$.ajax({
 			url : url,
 			dataType : 'jsonp',
+			timeout : vent,
 			data : {
 				x : x,
 				y : y
@@ -1129,6 +1173,7 @@ var Rfs = {
 			Rfs.ajaxCheck = $.ajax({
 					url : Rfs.url + "/api/Tema.aspx",
 					dataType : "jsonp",
+					timeout : vent,
 					data : {
 						id : Rfs.tema.Id,
 						geometri : geometri.val()
@@ -1142,7 +1187,7 @@ var Rfs = {
 							$("#GeometryError").popup('open');
 					},
 					error : function (jqXHR, textStatus, errorThrown) {
-						$.mobile.changePage("#ShowKommunerError");
+						$("#errorValidateLocation").popup('open');
 					},
 					complete : function () {
 						$.mobile.hidePageLoadingMsg();
@@ -1167,7 +1212,7 @@ var Rfs = {
 }
 
 var kommuneNr = null;
-$('#SearchPage1').live('pageinit', function (event) {
+$('#SearchPage1').on('pageinit', function (event) {
 	//oiorest.init();
 	$("#search1").bind("keyup change", function (event) {
 		var text = $(this).val();
@@ -1178,7 +1223,7 @@ $('#SearchPage1').live('pageinit', function (event) {
 oiorest.activeSearch.search2("");
 
 });*/
-$('#OioVej').live('pageinit', function (event) {});
+$('#OioVej').on('pageinit', function (event) {});
 
 var oiorest = {
 	kommuneNr : null,
@@ -1224,14 +1269,14 @@ Search = function (id, title, checked) {
 	this.title = title;
 	this.checked = checked;
 	this.ajax = null;
-	
+
 	this.x1 = null;
 	this.y1 = null;
 	this.x2 = null;
 	this.y2 = null;
 	this.url = null;
 	this.projection = null;
-	
+
 	this.title1 = null;
 	this.title2 = null;
 	this.title3 = null;
@@ -1258,7 +1303,7 @@ Search = function (id, title, checked) {
 	this.selection3 = null;
 	//this.zoom = null;
 	var self = this;
-	
+
 	var searchList = $("<ul>", {
 			"id" : "searchList" + this.id,
 			"data-role" : "listview",
@@ -1266,7 +1311,7 @@ Search = function (id, title, checked) {
 			"data-count-theme" : "b"
 		}).appendTo("#searchResult1");
 	searchList.listview();
-	
+
 	this.createCheckBox = function () {
 		var mycheck = $("<input>", {
 				"name" : "searchOption" + this.id,
@@ -1278,13 +1323,13 @@ Search = function (id, title, checked) {
 		}
 		mycheck.bind("change", function (event, ui) {
 			self.checked = event.target.checked;
-			
+
 			if (self.checked) {
 				self.search1();
 			} else {
 				var searchList = $("#searchList" + self.id);
 				searchList.html("");
-				
+
 			}
 		});
 		mycheck.appendTo("#searchOptions");
@@ -1304,9 +1349,10 @@ Search = function (id, title, checked) {
 				self.ajax = $.ajax({
 						url : self.url1.replace("[text]", self.text1).replace("[kommune]", Rfs.kommune.Nr),
 						dataType : 'jsonp',
+						timeout : vent,
 						success : function (data) {
 							$("<li data-role='list-divider'>" + self.title1 + "<span class='ui-li-count'>" + data.length + "</span></li>").appendTo("#searchList" + self.id);
-							
+
 							for (var i = 0; i < data.length; i++) {
 								var name = self.name1;
 								var m = self.name1.match(/\[.+?\]/g);
@@ -1335,6 +1381,7 @@ Search = function (id, title, checked) {
 		self.ajax = $.ajax({
 				url : self.url2.replace("[text]", self.text2).replace("[kommune]", Rfs.kommune.Nr).replace("[selection1]", self.selection1),
 				dataType : 'jsonp',
+				timeout : vent,
 				success : function (data) {
 					for (var i = 0; i < data.length; i++) {
 						var name = self.name2;
@@ -1362,6 +1409,7 @@ Search = function (id, title, checked) {
 		self.ajax = $.ajax({
 				url : self.url3.replace("[text]", self.text3).replace("[kommune]", Rfs.kommune.Nr).replace("[selection1]", self.selection1).replace("[selection2]", self.selection2),
 				dataType : 'jsonp',
+				timeout : vent,
 				success : function (data) {
 					for (var i = 0; i < data.length; i++) {
 						var name = self.name3;
@@ -1452,6 +1500,7 @@ Search = function (id, title, checked) {
 		self.ajax = $.ajax({
 				url : self.url.replace("[text]", name).replace("[kommune]", Rfs.kommune.Nr).replace("[selection1]", self.selection1).replace("[selection2]", self.selection2).replace("[selection3]", self.selection3),
 				dataType : 'jsonp',
+				timeout : vent,
 				success : function (data) {
 					var code = null;
 					try {
@@ -1498,7 +1547,7 @@ Search = function (id, title, checked) {
 					$.mobile.hidePageLoadingMsg();
 				}
 			});
-		
+
 	}
 }
 
@@ -1792,7 +1841,7 @@ function initMap() {
 			geolocationOptions : {
 				enableHighAccuracy : true,
 				maximumAge : 0,
-				timeout : 10000
+				timeout : 60000
 			}
 		});
 	//geolocate.watch = true;
@@ -1824,7 +1873,7 @@ function initMap() {
 		Rfs.lon = e.position.coords.longitude;
 		Rfs.acc = e.position.coords.accuracy;
 		vector.removeAllFeatures();
-		
+
 		vector.addFeatures([
 				new OpenLayers.Feature.Vector(
 					e.point, {}, {
@@ -1845,7 +1894,7 @@ function initMap() {
 		map.zoomToExtent(vector.getDataExtent());
 		if (!Rfs.useDrawControl)
 			vector.removeAllFeatures();
-		
+
 	});
 	map = new OpenLayers.Map({
 			div : "map",
@@ -1871,7 +1920,7 @@ function initMap() {
 			eventListeners : {
 				"move" : Move
 			}
-			
+
 		});
 	$("#plus").click(function () {
 		map.zoomIn();
@@ -1889,7 +1938,7 @@ function initMap() {
 		}
 	});
 	createMap();
-	
+
 }
 function locate() {
 	//var control = map.getControlsBy("id", "locate-control")[0];
@@ -2099,7 +2148,7 @@ function wmts(m) {
 			layer.options.maxExtent = capabilities.contents.tileMatrixSets[options.matrixSet].bounds;
 			layer.maxExtent = layer.options.maxExtent;
 			layer.projection = new OpenLayers.Projection(m.Extension[0].ProjectionCode[0]);
-			layer.wrapDateLine=false;
+			layer.wrapDateLine = false;
 			map.addLayer(layer);
 			map.projection = layer.projection;
 			map.units = layer.units;
@@ -2125,6 +2174,7 @@ function mapguide(m) {
 			username : "Anonymous"
 		},
 		dataType : 'jsonp',
+		timeout : vent,
 		success : function (data) {
 			$.ajax({
 				url : url + "loadmap.php",
@@ -2134,6 +2184,7 @@ function mapguide(m) {
 					session : data.sessionId
 				},
 				dataType : 'jsonp',
+				timeout : vent,
 				success : function (data) {
 					var inPerUnit = OpenLayers.INCHES_PER_UNIT.m * data.metersPerUnit;
 					OpenLayers.INCHES_PER_UNIT["dd"] = inPerUnit;
@@ -2168,10 +2219,10 @@ function mapguide(m) {
 						useAsyncOverlay : true,
 						singleTile : singleTile,
 						useHttpTile : useHttpTile,
-						units: "m",
+						units : "m",
 						maxExtent : new OpenLayers.Bounds.fromArray(data.extent)
 					};
-					
+
 					var layer;
 					//HttpTiled
 					if (useHttpTile) {
@@ -2215,7 +2266,7 @@ function mapguide(m) {
 					$("#map").css("background-color", data.backgroundColor);
 					if (startLocate && isBaseLayer)
 						map.zoomToExtent(layer.maxExtent);
-					
+
 					if (useOverlay) {
 						map.removeLayer(redline, false);
 						map.removeLayer(vector, false);
@@ -2224,12 +2275,12 @@ function mapguide(m) {
 						map.addLayer(vector);
 						map.addLayer(crosshairsLayer);
 					} else {
-						
+
 						addLayerToList({
 							ol : layer,
 							name : layer.name
 						});
-						
+
 					}
 					if (!useHttpTile) {
 						for (var i = 0; i < data.layers.length; i++) {
@@ -2261,23 +2312,7 @@ function mapguide(m) {
 
 // Start with the map page
 
-$('#Kort').live('pageshow', function (event) {
-	
-	fixContentHeight();
-	if (Rfs.showInfo) {
-		Rfs.showInfo = false;
-		if (Rfs.useDrawControl) {
-			$("#KortInfoDraw").popup("open");
-		} else {
-			$("#KortInfo").popup("open");
-		}
-	}
-	
-	if (!window.map) {
-		initMap();
-	}
-	
-});
+
 function fixContentHeight() {
 	var viewHeight = $(window).height();
 	var header = $("#headerKort");
@@ -2327,7 +2362,7 @@ function addLayerToList(layer) {
 				if (layer.ol.CLASS_NAME == "OpenLayers.Layer.MapGuide" && typeof layer.id !== "undefined") {
 					item.toggleClass('checked');
 					if (item.hasClass('checked')) {
-						
+
 						if (typeof layer.ol.params.hideLayers === "undefined") {
 							//layer.ol.params.hideLayers = layer.id
 						} else {

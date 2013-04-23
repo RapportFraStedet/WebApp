@@ -17,7 +17,7 @@ function markupDate(felt) {
 
 	markup += "<input type='date' id='" + felt.Id + "' name='" + felt.Id + "'";
 	if (felt.Required == 1) {
-		markup += " class=required";
+		markup += " class='required'";
 	}
 	if (felt.Permission == 1) {
 		markup += " class='ui-disabled'";

@@ -15,7 +15,7 @@ function markupDate(felt){
 	markup += felt.Name + "</label>";
 	markup += "<input type='text' id='" + felt.Id + "' name='" + felt.Id + "' data-role='datebox' data-options='{\"mode\": \"calbox\", \"useNewStyle\":true}' ";
 	if (felt.Required == 1) {
-		markup += " class=required";
+		markup += " class='required'";
 	}
 	if (felt.Permission == 1) {
 		markup += " class='ui-disabled'";

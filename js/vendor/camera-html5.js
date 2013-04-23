@@ -10,10 +10,10 @@ function uploadCamera() {
 	if (window.FormData) {
 		var form = $("#rapportForm")[0];
 		var formData = new FormData(form);
-		$(".imageCamera").each(function () {
+		/*$(".imageCamera").each(function () {
 			var id = this.id.replace('A', '');
 			formData.append(id, this.src);
-		});
+		});*/
 		if ($(".current > span").hasClass("animate"))
 			$(".current > span").removeClass("animate");
 		var xhr = new XMLHttpRequest();
@@ -42,14 +42,14 @@ function uploadCamera() {
 		};
 		xhr.send(formData);
 	} else {
-		$(".imageCamera").each(function () {
+		/*$(".imageCamera").each(function () {
 			var id = this.id.replace('A', '');
 			var id2 = $("#" + id);
 			if (id2.length > 0)
 				id2.val(this.src);
 			else
 				$("#rapportForm").append("<input type='hidden' name='" + id + "' id='" + id + "' value='" + this.src + "'/>");
-		});
+		});*/
 		var form = $("#rapportForm")[0];
 		form.action = Rfs.url + "/api/SaveFormsData.aspx";
 		form.method = "post";
@@ -77,8 +77,8 @@ function markupCamera(felt) {
 			markup += " class='ui-disabled'";
 		}
 		//markup += ">Fotoalbum<input class='fotoselect' type='file' name='" + felt.Id + "' id='" + felt.Id + "' /></div>";
-		markup += ">Fotoalbum<input class='fotoselect' type='file' name='" + felt.Id + "' /></div>";
-		
+		markup += ">Fotoalbum<input data-role='none' class='fotoselect' type='file' name='B" + felt.Id + "'/></div>";
+
 	}
 	if (html5Camera()) {
 		markup += "<a href='#PhotoPage?id=" + felt.Id + "' data-role='button' data-inline='true' data-transition='slide'";
@@ -87,11 +87,16 @@ function markupCamera(felt) {
 		}
 		markup += ">Kamera</a>";
 	}
+	markup += "<input type='hidden' id='"+felt.Id+"' name='"+felt.Id+"' val=''"
+	if (felt.Required == 1) {
+			markup += " class='required'";
+		}
+	markup +="/>";
 	markup += "<img id='A" + felt.Id + "' width='100%' style='display: none;'/>";
 	markup += "</div></div>";
 	return markup;
 }
-$('#PhotoPage').live('pageshow', function (event) {
+$('#PhotoPage').on('pageshow', function (event) {
 	var viewHeight = $(window).height();
 	var photoPage = $("#PhotoPage");
 	var photoContent = photoPage.children(":jqmData(role=content)");
@@ -103,13 +108,13 @@ $('#PhotoPage').live('pageshow', function (event) {
 	var photoButton = $("#photoButton");
 	var width = $(window).width();
 	var width2 = photoButton.outerWidth();
-	
+
 	photoButton.css("left", (width - width2) / 2);
-	
+
 	var onFailSoHard = function (e) {
 		console.log('Reeeejected!', e);
 	};
-	
+
 	// Not showing vendor prefixes.
 	window.URL = window.URL || window.webkitURL;
 	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
@@ -138,18 +143,19 @@ function snapshot() {
 		var file = $('#' + imageId);
 		if (file.length > 0)
 			file.val('');
-		$("#A" + imageId).attr("src", canvas.toDataURL('image/jpeg')).css('display', 'inline').addClass('imageCamera');
-		var input = $("input[name='" + imageId + "']");
-		if (input.length > 0)
-		{
+		$("#A" + imageId).attr("src", canvas.toDataURL('image/jpeg')).css('display', 'inline');
+		$("#" + imageId).val(canvas.toDataURL('image/jpeg'));
+		//clear file input
+		var input = $("input[name='B" + imageId + "']");
+		if (input.length > 0) {
 			input.unbind('change');
 			input[0].outerHTML = input[0].outerHTML;
 			$("input[name='" + imageId + "']").bind('change', Rfs.inputChanged);
-		}	
+		}
 	}
 	$.mobile.changePage("#Formular", {
 		transition : 'slide',
 		reverse : true
 	});
-	
+
 }

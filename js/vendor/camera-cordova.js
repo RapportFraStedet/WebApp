@@ -136,12 +136,18 @@ function markupCamera(felt) {
 		markup += " class='ui-disabled'";
 	}
 	markup += "/>";
+	markup += "<input type='hidden' id='"+felt.Id+"' name='"+felt.Id+"' val=''"
+	if (felt.Required == 1) {
+			markup += " class='required'";
+		}
+	markup +="/>";
 	markup += "<img id='A" + felt.Id + "' width='100%' style='display: none;' class='imageCamera'/>";
 	markup += "</div></div>";
 	return markup;
 }
 function onSuccess(imageURL) {
 	$("#A" + imageId).attr("src", imageURL).css('display', 'inline');
+	$("#" + imageId).val(imageURL);
 }
 
 // Called if something bad happens.
