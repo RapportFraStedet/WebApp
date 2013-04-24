@@ -20,38 +20,13 @@ var images;
 function win(r) {
 	var obj = $.parseJSON(r.response);
 	if (typeof obj.id === "undefined") {
-		$.mobile.changePage("#KvitteringError", {
-			transition : "slide"
-		});
+		location = "#KvitteringError";
 	} else {
-		$.mobile.changePage("#Kvittering");
-		/*if (currentImage < images.length) {
-		var image = images[currentImage];
-		currentImage++;
-		var options = new FileUploadOptions();
-		options.fileKey = image.id.replace('A', '');
-		options.fileName = image.src.substr(image.src.lastIndexOf('/') + 1);
-		options.mimeType = "image/jpeg";
-		options.params = {
-		id : r.response.id
-		};
-		var ft = new FileTransfer();
-		ft.onprogress = function (e) {
-		if (e.lengthComputable) {
-		$(".current > span").width(e.loaded / e.total * 100 + "%");
-		}
-		};
-		ft.upload(image.src, encodeURI(Rfs.url + "/api/UpdateFormsData.aspx"), win, fail, options);
-		} else {
-		$.mobile.changePage("#Kvittering");
-		}
-		}*/
+		location = "#Kvittering";
 	}
 }
 function fail(error) {
-	$.mobile.changePage("#KvitteringError", {
-		transition : "slide"
-	});
+	location = "#KvitteringError";
 }
 function uploadCamera() {
 	images = $(".imageCamera");
@@ -86,15 +61,11 @@ function uploadCamera() {
 			xhr.onload = function (e) {
 				$(".current > span").width("100%");
 				if (this.status == 200) {
-					$.mobile.changePage("#Kvittering", {
-						transition : "slide"
-					});
+					location = "#Kvittering";
 				} else {
 					var response = JSON.parse(this.response);
 					$("#errorMessage").html("<h3>" + response.Message + "</h3><p>" + response.ExceptionMessage + "</p>");
-					$.mobile.changePage("#KvitteringError", {
-						transition : "slide"
-					});
+					location = "#KvitteringError";
 				}
 			};
 			xhr.upload.onprogress = function (e) {
@@ -113,7 +84,7 @@ function uploadCamera() {
 			$(".current > span").width("100%");
 			if (!$(".current > span").hasClass("animate"))
 				$(".current > span").addClass("animate");
-			$.mobile.changePage("#Kvittering");
+			location = "#Kvittering";
 		}
 		
 	}
@@ -136,12 +107,18 @@ function markupCamera(felt) {
 		markup += " class='ui-disabled'";
 	}
 	markup += "/>";
+	markup += "<input type='hidden' id='"+felt.Id+"' name='"+felt.Id+"' val=''"
+	if (felt.Required == 1) {
+			markup += " class='required'";
+		}
+	markup +="/>";
 	markup += "<img id='A" + felt.Id + "' width='100%' style='display: none;' class='imageCamera'/>";
 	markup += "</div></div>";
 	return markup;
 }
 function onSuccess(imageURL) {
 	$("#A" + imageId).attr("src", imageURL).css('display', 'inline');
+	$("#" + imageId).val(imageURL);
 }
 
 // Called if something bad happens.

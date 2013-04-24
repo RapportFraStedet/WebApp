@@ -312,23 +312,26 @@ textarea {
 	-webkit-animation: none;
 	background-image: none;
 }
-.error, .error .ui-btn-inner {
-    border-color:red;
+.highlighterror, .cameraButtons.highlighterror .ui-btn{
+	border-color: #f1433f;
 }
-
 label.error
-        {
-            /*color: #e80c4d*/
-            color: #f1433f;
-        }
-        em
-        {
-            font-weight: bold;
-            padding-right: 0.5em;
-            vertical-align: top;
-            color: #387bbe;
-        }
-        .olDragDown {
+{
+	color: #f1433f;
+}
+@media all and (min-width: 28em){
+	label.error
+	{
+		margin-left:22%;
+	}
+}
+em {
+    font-weight: bold;
+    padding-right: 0.5em;
+    vertical-align: top;
+    color: #387bbe;
+}
+.olDragDown {
     cursor: move;
 }
 /* Google Openlayers */

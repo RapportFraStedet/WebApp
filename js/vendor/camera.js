@@ -14,71 +14,30 @@ function markupCamera(felt) {
 		markup += "<em>*</em>";
 	}
 	markup += felt.Name + "</label>";
-	markup += "<div data-role='button' data-inline='true'";
-	if (felt.Permission == 1) {
-		markup += " class='ui-disabled'";
+	markup += "<input type='file' name='" + felt.Id + "' id='" + felt.Id + "'";
+	if (felt.Permission == 1 || felt.Required == 1) {
+		markup += " class='";
+		if (felt.Permission == 1) {
+			markup += "ui-disabled";
+		}
+		if (felt.Required == 1) {
+			markup += " required";
+		}
+		markup += "'";
 	}
-	markup += ">Fotoalbum<input class='fotoselect' type='file' name='" + felt.Id + "' id='" + felt.Id + "' /></div>";
-	markup += "</div>";
-	markup += "<div data-role='fieldcontain'>";
-	markup += "<label for='A" + felt.Id + "'>Filnavn</label>";
-	markup += "<input type='text' id='A" + felt.Id + "' name='A" + felt.Id + "' readonly='readonly'  style='display:none' />";
+	markup += "/>";
 	markup += "</div>";
 	return markup;
 }
 function uploadCamera() {
-	if (window.FormData) {
-		var form = $("#rapportForm")[0];
-		var formData = new FormData(form);
-		$(".imageCamera").each(function () {
-			var id = this.id.replace('A', '');
-			formData.append(id, this.src);
-		});
-		if ($(".current > span").hasClass("animate"))
-			$(".current > span").removeClass("animate");
-		var xhr = new XMLHttpRequest();
-		xhr.open('POST', Rfs.url + "/api/SaveFormsData.aspx", true);
-		xhr.onerror = function () {
-			alert("error");
-		};
-		xhr.onload = function (e) {
-			$(".current > span").width("100%");
-			if (this.status == 200) {
-				$.mobile.changePage("#Kvittering", {
-					transition : "slide"
-				});
-			} else {
-				var response = JSON.parse(this.response);
-				$("#errorMessage").html("<h3>" + response.Message + "</h3><p>" + response.ExceptionMessage + "</p>");
-				$.mobile.changePage("#KvitteringError", {
-					transition : "slide"
-				});
-			}
-		};
-		xhr.upload.onprogress = function (e) {
-			if (e.lengthComputable) {
-				$(".current > span").width(e.loaded / e.total * 100 + "%");
-			}
-		};
-		xhr.send(formData);
-	} else {
-		$(".imageCamera").each(function () {
-			var id = this.id.replace('A', '');
-			var id2 = $("#" + id);
-			if (id2.length > 0)
-				id2.val(this.src);
-			else
-				$("#rapportForm").append("<input type='hidden' name='" + id + "' id='" + id + "' value='" + this.src + "'/>");
-		});
-		var form = $("#rapportForm")[0];
-		form.action = Rfs.url + "/api/SaveFormsData.aspx";
-		form.method = "post";
-		form.enctype = "multipart/form-data";
-		form.target = "hiddenIFrame";
-		form.submit();
-		$(".current > span").width("100%");
-		if (!$(".current > span").hasClass("animate"))
-			$(".current > span").addClass("animate");
-		$.mobile.changePage("#Kvittering");
-	}
+	var form = $("#rapportForm")[0];
+	form.action = Rfs.url + "/api/SaveFormsData.aspx";
+	form.method = "post";
+	form.enctype = "multipart/form-data";
+	form.target = "hiddenIFrame";
+	form.submit();
+	$(".current > span").width("100%");
+	if (!$(".current > span").hasClass("animate"))
+		$(".current > span").addClass("animate");
+	location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id + '/kvittering';
 }
