@@ -1299,7 +1299,7 @@ var Rfs = {
 						if (input.length > 0) {
 							input.unbind('change');
 							input[0].outerHTML = input[0].outerHTML;
-							$("input[name='" + imageId + "']").bind('change', Rfs.inputChanged);
+							$("input[name='B" + imageId + "']").bind('change', Rfs.inputChanged);
 						}
 					};
 				})(blob);
