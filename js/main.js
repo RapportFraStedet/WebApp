@@ -7,8 +7,8 @@ This file is part of "RapportFraStedet".
 You should have received a copy of the GNU General Public License along with "RapportFraStedet". If not, see <http://www.gnu.org/licenses/>.
  */
 
-var url = "http://service.rapportfrastedet.dk/RapportFraStedet/api/kommune.aspx";
-//var url = "http://rtv04/RapportFraStedet/api/kommune.aspx";
+//var url = "http://service.rapportfrastedet.dk/RapportFraStedet/api/kommune.aspx";
+var url = "http://rtv04/RapportFraStedet/api/kommune.aspx";
 var imageId;
 var x = 0;
 var y = 0;
@@ -2488,7 +2488,8 @@ function mapguide(m) {
 
 					}
 					if (!useHttpTile) {
-						var info = new OpenLayers.Control.MapGuideGetFeatureInfo({
+						//Uncoment to activate info on layers
+						/*var info = new OpenLayers.Control.MapGuideGetFeatureInfo({
 								url : Rfs.tema.MapAgent,
 								layer : layer,
 								maxFeatures : -1,
@@ -2496,7 +2497,7 @@ function mapguide(m) {
 								layerAttributeFilter : 3
 							});
 						map.addControl(info);
-						info.activate();
+						info.activate();*/
 						for (var i = 0; i < data.layers.length; i++) {
 							var ml = data.layers[i];
 							if (ml.displayInLegend) {
