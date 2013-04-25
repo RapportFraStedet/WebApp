@@ -491,6 +491,9 @@ $(document).bind('pageinit', function (e) {
 		break;
 	case "Formular":
 		formularInit = true;
+		$("#rapportForm").submit(function(){
+			return false;
+		});
 		break;
 	}
 });
@@ -957,6 +960,7 @@ var Rfs = {
 		markup += "<input type='hidden' name='ViewId' value='" + Rfs.rapport.ViewId + "'/>";
 		markup += "<input type='hidden' name='UserId' value='" + Rfs.rapport.UserId + "'/>";
 		markup += "<input type='hidden' name='Date' value='" + Rfs.rapport.Date + "'/>";
+		markup += "<input type='submit' style='display:none' data-role='none'/>";
 		markup += "<fieldset>";
 
 		for (var i = 0; i < felter.length; i++) {
