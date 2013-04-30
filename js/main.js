@@ -477,13 +477,12 @@ $(document).bind('pageinit', function (e) {
 			var ua = navigator.userAgent.toLowerCase();
 			if (ua.indexOf("android") > -1) {
 				$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://www.rapportfrastedet.dk/RapportFraStedet.apk' ><img src='./img/android.png' alt='Android'/></a>");
+			} else if (ua.indexOf("ipad") > -1 || ua.indexOf("iphone") > -1) {
+				$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://itunes.com/apps/rfs' ><img src='./img/apple.png' alt='Apple'/></a>");
 			}
 			/*else if (ua.indexOf("ipad") > -1 || ua.indexOf("iphone") > -1) {
-			$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://itunes.com/apps/rapportfrastedet' ><img src='./img/apple.png' alt='Apple'/></a>");
+			$('#app').html("<p>Tilføj Rapport Fra Stedet som genvej. Klik på <img src='./img/genvej.jpg' alt='genvej'/> i din browser og føj til hjemmeskærm.");
 			}*/
-			else if (ua.indexOf("ipad") > -1 || ua.indexOf("iphone") > -1) {
-				$('#app').html("<p>Tilføj Rapport Fra Stedet som genvej. Klik på <img src='./img/genvej.jpg' alt='genvej'/> i din browser og føj til hjemmeskærm.");
-			}
 			/*else if (ua.indexOf("Windows Phone") > -1) {
 			$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://www.windowsphone.com/da-DK/marketplace' ><img src='./img/windows.png' alt='Windows Phone'/></a>");
 			}*/
@@ -491,7 +490,7 @@ $(document).bind('pageinit', function (e) {
 		break;
 	case "Formular":
 		formularInit = true;
-		$("#rapportForm").submit(function(){
+		$("#rapportForm").submit(function () {
 			return false;
 		});
 		break;
@@ -569,7 +568,7 @@ var Rfs = {
 		if (Rfs.kommune && Rfs.kommune.Nr == nr) {
 			$.mobile.changePage($('#Kommune'), options);
 		} else {
-			Rfs.temaer=null;
+			Rfs.temaer = null;
 			if (Rfs.kommuner != null) {
 				for (var i = 0; i < Rfs.kommuner.length; i++) {
 					if (Rfs.kommuner[i].Nr == nr) {
@@ -757,8 +756,8 @@ var Rfs = {
 							case "RapportFraStedet":
 								$("#kortnavbar").show();
 								var ext = m.Extension[0];
-								if(ext.kvittering)
-									Rfs.kvittering=ext.kvittering[0];
+								if (ext.kvittering)
+									Rfs.kvittering = ext.kvittering[0];
 								if (ext.type[0] != '-1' && ext.type[0] != '0') {
 									$('#tegnList').html("<li data-role='divider' data-theme='a'>Tegneværktøjer</li>");
 									Rfs.useDrawControl = true;
@@ -1236,10 +1235,10 @@ var Rfs = {
 
 		markup += "</fieldset>";
 		//$(markup).appendTo("#rapportForm").trigger("create");
-		if(formularInit)
-		$("#rapportForm").html(markup).trigger("create");
+		if (formularInit)
+			$("#rapportForm").html(markup).trigger("create");
 		else
-		$("#rapportForm").html(markup);
+			$("#rapportForm").html(markup);
 		//page.trigger("create");
 		$(':file').bind('change', this.inputChanged);
 
@@ -2457,6 +2456,7 @@ function mapguide(m) {
 						options["maxScale"] = 1;
 						options["minScale"] = 1000000000000;
 						options["units"] = "m";
+						//options["resolutions"] =[156543.03390625,78271.516953125,39135.7584765625,19567.87923828125,9783.939619140625,4891.9698095703125,2445.9849047851562,1222.9924523925781,611.4962261962891,305.74811309814453,152.87405654907226,76.43702827453613,38.218514137268066,19.109257068634033,9.554628534317017,4.777314267158508,2.388657133579254,1.194328566789627,0.5971642833948135];
 						layer = new OpenLayers.Layer.MapGuide(data.mapTitle, Rfs.tema.MapAgent, params, options);
 					}
 					//Tiled
@@ -2494,12 +2494,12 @@ function mapguide(m) {
 					if (!useHttpTile) {
 						//Uncoment to activate info on layers
 						/*var info = new OpenLayers.Control.MapGuideGetFeatureInfo({
-								url : Rfs.tema.MapAgent,
-								layer : layer,
-								maxFeatures : -1,
-								persist : 1,
-								layerAttributeFilter : 3
-							});
+						url : Rfs.tema.MapAgent,
+						layer : layer,
+						maxFeatures : -1,
+						persist : 1,
+						layerAttributeFilter : 3
+						});
 						map.addControl(info);
 						info.activate();*/
 						for (var i = 0; i < data.layers.length; i++) {
