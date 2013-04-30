@@ -472,6 +472,12 @@ function geoLocate() {
 }
 $(document).bind('pageinit', function (e) {
 	switch (e.target.id) {
+	case "SearchPage1":
+		$("#search1").bind("keyup change", function (event) {
+			var text = $(this).val();
+			oiorest.search(text);
+		});
+	break;
 	case "Start":
 		if ($('#app').length > 0) {
 			var ua = navigator.userAgent.toLowerCase();
@@ -701,6 +707,7 @@ var Rfs = {
 				Rfs.useDrawControl = false;
 				Rfs.showMarker = false;
 				Rfs.url = null;
+				Rfs.FeatureInfo=false;
 				Rfs.kvittering = "<h3>Tak for din indberetning</h3><p>Vil du foretage en ny indberetning?</p>";
 				$("#kortnavbar").hide();
 				$("#backKommune").attr('href', '#/kommune/' + Rfs.kommune.Nr);
@@ -780,6 +787,8 @@ var Rfs = {
 									Rfs.url = ext.Url[0];
 								}
 
+								break;
+							case "FeatureInfo": Rfs.FeatureInfo=true;
 								break;
 							}
 						}
@@ -1415,18 +1424,7 @@ var Rfs = {
 }
 
 var kommuneNr = null;
-$('#SearchPage1').on('pageinit', function (event) {
-	//oiorest.init();
-	$("#search1").bind("keyup change", function (event) {
-		var text = $(this).val();
-		oiorest.search(text);
-	});
-});
-/*$('#SearchPage2').live('pageshow', function (event) {
-oiorest.activeSearch.search2("");
 
-});*/
-$('#OioVej').on('pageinit', function (event) {});
 
 var oiorest = {
 	kommuneNr : null,
@@ -2493,7 +2491,9 @@ function mapguide(m) {
 					}
 					if (!useHttpTile) {
 						//Uncoment to activate info on layers
-						/*var info = new OpenLayers.Control.MapGuideGetFeatureInfo({
+						if(Rfs.FeatureInfo)
+						{
+						var info = new OpenLayers.Control.MapGuideGetFeatureInfo({
 						url : Rfs.tema.MapAgent,
 						layer : layer,
 						maxFeatures : -1,
@@ -2501,7 +2501,9 @@ function mapguide(m) {
 						layerAttributeFilter : 3
 						});
 						map.addControl(info);
-						info.activate();*/
+						info.activate();
+						}
+						//
 						for (var i = 0; i < data.layers.length; i++) {
 							var ml = data.layers[i];
 							if (ml.displayInLegend) {

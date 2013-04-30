@@ -184,7 +184,7 @@ OpenLayers.Control.MapGuideGetFeatureInfo = OpenLayers.Class(OpenLayers.Control,
 				scope : this
 			};
 			//OpenLayers.ProxyHost = "proxy.cgi?url=";
-			OpenLayers.ProxyHost = "http://query.yahooapis.com/v1/public/yql?q=select * from xml where url=";
+			//OpenLayers.ProxyHost = "http://query.yahooapis.com/v1/public/yql?q=select * from xml where url=";
 			var request = OpenLayers.Request.GET(info);
 			
 		},
