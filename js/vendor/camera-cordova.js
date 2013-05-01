@@ -20,9 +20,11 @@ var images;
 function win(r) {
 	var obj = $.parseJSON(r.response);
 	if (typeof obj.id === "undefined") {
-		location = "#KvitteringError";
+		$("#errorMessage").html("<h3>" + response.Message + "</h3><p>" + response.ExceptionMessage + "</p>");
+		location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id + '/kvitteringfejl';
+		
 	} else {
-		location = "#Kvittering";
+		location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id + '/kvittering';
 	}
 }
 function fail(error) {
@@ -61,11 +63,11 @@ function uploadCamera() {
 			xhr.onload = function (e) {
 				$(".current > span").width("100%");
 				if (this.status == 200) {
-					location = "#Kvittering";
+					location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id + '/kvittering';
 				} else {
 					var response = JSON.parse(this.response);
 					$("#errorMessage").html("<h3>" + response.Message + "</h3><p>" + response.ExceptionMessage + "</p>");
-					location = "#KvitteringError";
+					location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id + '/kvitteringfejl';
 				}
 			};
 			xhr.upload.onprogress = function (e) {
@@ -84,7 +86,7 @@ function uploadCamera() {
 			$(".current > span").width("100%");
 			if (!$(".current > span").hasClass("animate"))
 				$(".current > span").addClass("animate");
-			location = "#Kvittering";
+			location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id + '/kvittering';
 		}
 		
 	}

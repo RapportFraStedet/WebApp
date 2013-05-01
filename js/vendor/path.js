@@ -107,11 +107,11 @@ var Path = {
     'listen': function () {
         var fn = function(){ Path.dispatch(location.hash); }
 
-        if (location.hash === "") {
+        /*if (location.hash === "") {
             if (Path.routes.root !== null) {
                 location.hash = Path.routes.root;
             }
-        }
+        }*/
 
         // The 'document.documentMode' checks below ensure that PathJS fires the right events
         // even in IE "Quirks Mode".
@@ -121,9 +121,9 @@ var Path = {
             setInterval(fn, 50);
         }
 
-        if(location.hash !== "") {
+        //if(location.hash !== "") {
             Path.dispatch(location.hash);
-        }
+			//}
     },
     'core': {
         'route': function (path) {
