@@ -479,7 +479,8 @@ $(document).bind('pageinit', function (e) {
 		});
 	break;
 	case "Start":
-		if ($('#app').length > 0) {
+	    if(typeof(cordova)=="undefined"){
+		//if ($('#app').length > 0) {
 			var ua = navigator.userAgent.toLowerCase();
 			if (ua.indexOf("android") > -1) {
 				$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://www.rapportfrastedet.dk/RapportFraStedet.apk' ><img src='./img/android.png' alt='Android'/></a>");
@@ -2491,7 +2492,7 @@ function mapguide(m) {
 					}
 					if (!useHttpTile) {
 						//Uncoment to activate info on layers
-						if(Rfs.FeatureInfo)
+						/*if(Rfs.FeatureInfo)
 						{
 						var info = new OpenLayers.Control.MapGuideGetFeatureInfo({
 						url : Rfs.tema.MapAgent,
@@ -2502,7 +2503,7 @@ function mapguide(m) {
 						});
 						map.addControl(info);
 						info.activate();
-						}
+						}*/
 						//
 						for (var i = 0; i < data.layers.length; i++) {
 							var ml = data.layers[i];

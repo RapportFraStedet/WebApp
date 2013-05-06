@@ -24,6 +24,12 @@ if (!(window.console && console.log)) {
 Modernizr.load({
 	test : Modernizr.inputtypes.date,
 	yep : 'js/vendor/date.js',
+	/*nope: ['http://dev.jtsage.com/cdn/datebox/latest/jqm-datebox.min.css',
+		'https://raw.github.com/brandonaaron/jquery-mousewheel/master/jquery.mousewheel.js',
+		'http://dev.jtsage.com/cdn/datebox/latest/jqm-datebox.core.js',
+		'http://dev.jtsage.com/cdn/datebox/latest/jqm-datebox.mode.calbox.js',
+		'http://dev.jtsage.com/cdn/datebox/latest/jqm-datebox.mode.datebox.js',
+		'http://dev.jtsage.com/cdn/datebox/i18n/jquery.mobile.datebox.i18n.en_US.utf8.js','js/vendor/no-date.js']*/
 	nope : ['css/jqm-datebox.css', 'js/vendor/jqm-datebox.core.js', 'js/vendor/jqm-datebox.mode.calbox.js', 'js/vendor/jquery.mobile.datebox.i18n.da.utf8.js', 'js/vendor/no-date.js']
 });
 function html5Camera() {

@@ -10,7 +10,7 @@
 	$.widget( "mobile.datebox", $.mobile.widget, {
 		options: {
 			// All widget options, including some internal runtime details
-			version: '2-1.1.0-2012091200', // jQMMajor.jQMMinor.DBoxMinor-YrMoDaySerial
+			version: '2-1.3.0-2013040300', // jQMMajor.jQMMinor.DBoxMinor-YrMoDaySerial
 			theme: false,
 			themeDefault: 'c',
 			themeHeader: 'a',
@@ -35,6 +35,11 @@
 			
 			dialogEnable: false,
 			dialogForce: false,
+			enablePopup: false,
+			
+			popupPosition: false,
+			popupForceX: false,
+			popupForceY: false,
 			
 			useModal: false,
 			useInline: false,
@@ -56,6 +61,9 @@
 			closeCallback: false,
 			closeCallbackArgs: [],
 			
+			startOffsetYears: false,
+			startOffsetMonths: false,
+			startOffsetDays: false,
 			afterToday: false,
 			beforeToday: false,
 			notToday: false,
@@ -64,6 +72,7 @@
 			maxYear: false,
 			minYear: false,
 			blackDates: false,
+			blackDatesRec: false,
 			blackDays: false,
 			minHour: false,
 			maxHour: false,
@@ -103,7 +112,8 @@
 					durationOrder: ['d', 'h', 'i', 's'],
 					meridiem: ['AM', 'PM'],
 					timeOutput: '%k:%M', //{ '12': '%l:%M %p', '24': '%k:%M' },
-					durationFormat: '%Dd %DA, %Dl:%DM:%DS'
+					durationFormat: '%Dd %DA, %Dl:%DM:%DS',
+					calDateListLabel: 'Other Dates'
 				}
 			}
 		},
@@ -226,7 +236,7 @@
 			});
 		},
 		_event: function(e, p) {
-			var w = $(this).data('datebox');
+			var w = parseInt($.mobile.version.replace(/\./g,''),10) > 110 ? $(this).data('mobileDatebox') : $(this).data('datebox');
 			if ( ! e.isPropagationStopped() ) {
 				switch (p.method) {
 					case 'close':
@@ -276,7 +286,7 @@
 				
 			if ( typeof o[oride] !== 'undefined' ) { return o[oride]; }
 			if ( typeof o.lang[o.useLang][val] !== 'undefined' ) { return o.lang[o.useLang][val]; }
-			if ( typeof o[o.mode+'lang'][val] !== 'undefined' ) { return o[o.mode+'lang'][val]; }
+			if ( typeof o[o.mode+'lang'] !== 'undefined' && typeof o[o.mode+'lang'][val] !== 'undefined' ) { return o[o.mode+'lang'][val]; }
 			return o.lang['default'][val];
 		},
 		__fmt: function() {
@@ -288,6 +298,7 @@
 				case 'timeflipbox':
 					return w.__('timeOutput');
 				case 'durationbox':
+				case 'durationflipbox':
 					return w.__('durationFormat');
 				default:
 					return w.__('dateFormat');
@@ -362,7 +373,7 @@
 			if ( typeof o.mode === 'undefined' ) { return date; }
 			if ( typeof w._parser[o.mode] !== 'undefined' ) { return w._parser[o.mode].apply(w,[str]); }
 			
-			if ( o.mode === 'durationbox' ) {
+			if ( o.mode === 'durationbox' || o.mode === 'durationflipbox' ) {
 				adv = adv.replace(/%D([a-z])/gi, function(match, oper) {
 					switch (oper) {
 						case 'd':
@@ -441,6 +452,7 @@
 							if ( o.mode === 'timebox' || o.mode === 'timeflipbox' ) {
 								exp_temp = o.defaultValue.split(':');
 								if ( exp_temp.length === 3 ) { date = w._pa([exp_temp[0],exp_temp[1],exp_temp[2]], date); }
+								else if ( exp_temp.length === 2 ) { date = w._pa([exp_temp[0],exp_temp[1],0], date); }
 							} else {
 								exp_temp = o.defaultValue.split('-');
 								if ( exp_temp.length === 3 ) { date = w._pa([exp_temp[0],exp_temp[1]-1,exp_temp[2]], false); }
@@ -493,7 +505,7 @@
 					if ( d.meri === 1 && d.hour !== 12 ) { d.hour = d.hour + 12; }
 				}
 				
-				date = new w._date(w._n(d.year,1),w._n(d.mont,1),w._n(d.date,1),w._n(d.hour,0),w._n(d.mins,0),w._n(d.secs,0),0);
+				date = new w._date(w._n(d.year,0),w._n(d.mont,0),w._n(d.date,1),w._n(d.hour,0),w._n(d.mins,0),w._n(d.secs,0),0);
 				
 				if ( d.year < 100 && d.year !== -1 ) { date.setFullYear(d.year); }
 				
@@ -518,7 +530,7 @@
 					part: [0,0,0,0], tp: 0
 				};
 				
-				if ( o.mode === 'durationbox' ) {
+				if ( o.mode === 'durationbox' || o.mode === 'durationflipbox' ) {
 					dur.tp = this.theDate.getEpoch() - this.initDate.getEpoch();
 					dur.part[0] = parseInt( dur.tp / (60*60*24),10); dur.tp -=(dur.part[0]*60*60*24); // Days
 					dur.part[1] = parseInt( dur.tp / (60*60),10); dur.tp -= (dur.part[1]*60*60); // Hours
@@ -684,6 +696,20 @@
 			if ( update === true ) { w.refresh(); }
 			if ( o.useImmediate ) { w.d.input.trigger('datebox', {'method':'doset'}); }
 		},
+		_startOffset: function(date) {
+			var o = this.options;
+			
+			if ( o.startOffsetYears !== false ) {
+				date.adj(0, o.startOffsetYears);
+			}
+			if ( o.startOffsetMonths !== false ) {
+				date.adj(1, o.startOffsetMonths);
+			}
+			if ( o.startOffsetDays !== false ) {
+				date.adj(2, o.startOffsetDays);
+			}
+			return date;
+		},
 		_create: function() {
 			// Create the widget, called automatically by widget system
 			$( document ).trigger( "dateboxcreate" );
@@ -720,6 +746,7 @@
 					delta  : false,
 					tmp    : false
 				},
+				calc = { },
 				ns = (typeof $.mobile.ns !== 'undefined')?$.mobile.ns:'';
 				
 			$.extend(w, {d: d, ns: ns, drag: drag, touch:touch});
@@ -736,6 +763,7 @@
 			w.runButton = false;
 			w._date = window.Date;
 			w._enhanceDate();
+			w.baseID = w.d.input.attr('id');
 			
 			w.initDate = new w._date();
 			w.theDate = (o.defaultValue) ? w._makeDate(o.defaultValue) : new w._date();
@@ -745,7 +773,7 @@
 				w.d.open = $('<a href="#" class="ui-input-clear" title="'+this.__('tooltip')+'">'+this.__('tooltip')+'</a>')
 					.on(o.clickEvent, function(e) {
 						e.preventDefault();
-						if ( !w.disabled ) { w.d.input.trigger('datebox', {'method': 'open'}); w.d.wrap.addClass('ui-focus'); }
+						if ( !w.disabled ) { w.d.input.trigger('datebox', {'method': 'open'}); w.d.wrap.addClass('ui-focus'); w.d.input.parent().removeClass('ui-focus'); }
 						setTimeout( function() { $(e.target).closest('a').removeClass($.mobile.activeBtnClass); }, 300);
 					}).appendTo(w.d.wrap).buttonMarkup({icon: 'grid', iconpos: 'notext', corners:true, shadow:true})
 					.css({'vertical-align': 'middle', 'display': 'inline-block'});
@@ -781,7 +809,7 @@
 				.bind(w.touch?'touchend':'click', function(e){
 					if ( w.disabled === false && o.useNewStyle === true && o.useFocus === false ) {
 						if ( ((w.touch ? e.originalEvent.changedTouches[0].pageX : e.pageX) - e.target.offsetLeft) > (e.target.offsetWidth - 20) ) {
-							w.d.input.trigger('datebox', {'method': 'open'}); w.d.wrap.addClass('ui-focus');
+							w.d.input.trigger('datebox', {'method': 'open'}); w.d.wrap.addClass('ui-focus'); w.d.input.removeClass('ui-focus');
 						}
 					}
 				})
@@ -803,8 +831,10 @@
 				.on('datebox', w._event);
 			
 			if ( o.useNewStyle === true ) {
-				w.d.input.addClass('ui-shadow-inset ui-corner-all '+((o.useAltIcon===true)?'ui-icon-datebox-alt':'ui-icon-datebox'));
+				w.d.input.addClass('ui-corner-all '+((o.useAltIcon===true)?'ui-icon-datebox-alt':'ui-icon-datebox'));
 				if ( o.overrideStyleClass !== false ) { w.d.input.addClass(o.overrideStyleClass); }
+			} else {
+				w.d.input.parent().css('border', 'none').removeClass('ui-shadow-inset');
 			}
 			
 			// Check if mousewheel plugin is loaded
@@ -817,8 +847,37 @@
 			
 			if ( o.useInline === true || o.useInlineBlind ) { w.open(); }
 			
+			w.applyMinMax(false, false);
+			
 			//Throw dateboxinit event
 			$( document ).trigger( "dateboxaftercreate" );
+		},
+		applyMinMax: function(refresh, override) {
+			var w = this,
+					o = this.options,
+					calc = {};
+					
+			if ( typeof refresh === 'undefined' ) { refresh = false; }
+			if ( typeof override === 'undefined' ) { override = true; }
+			
+			if ( ( override === true || o.minDays === false ) && typeof(w.d.input.attr('min')) !== 'undefined' ) {
+				calc.today  = new w._date();
+				calc.lod    = 24 * 60 * 60 * 1000;
+				calc.todayc = new w._date(calc.today.getFullYear(), calc.today.getMonth(), calc.today.getDate(), 0,0,0,0);
+				calc.fromel = w.d.input.attr('min').split('-');
+				calc.compdt  = new w._date(calc.fromel[0],calc.fromel[1]-1,calc.fromel[2],0,0,0,0);
+				o.minDays = parseInt((((calc.compdt.getTime() - calc.todayc.getTime()) / calc.lod))*-1,10);
+			}
+			if ( ( override === true || o.maxDays === false ) && typeof(w.d.input.attr('max')) !== 'undefined' ) {
+				calc.today  = new w._date();
+				calc.lod    = 24 * 60 * 60 * 1000;
+				calc.todayc = new w._date(calc.today.getFullYear(), calc.today.getMonth(), calc.today.getDate(), 0,0,0,0);
+				calc.fromel = w.d.input.attr('max').split('-');
+				calc.compdt  = new w._date(calc.fromel[0],calc.fromel[1]-1,calc.fromel[2],0,0,0,0);
+				o.maxDays = parseInt((((calc.compdt.getTime() - calc.todayc.getTime()) / calc.lod)),10);
+			}
+			
+			if ( refresh === true ) { w.refresh(); }
 		},
 		_build: {
 			'default': function () {
@@ -894,7 +953,9 @@
 		},
 		open: function () {
 			var w = this,
-				o = this.options,
+				o = this.options, 
+				popopts = {},
+				basepop = {'history':false},
 				qns = 'data-'+this.ns,
 				trans = o.useAnimation ? o.transition : 'none';
 			
@@ -917,6 +978,7 @@
 			}
 				
 			w.theDate = w._makeDate(w.d.input.val());
+			if ( w.d.input.val() === "" ) { w._startOffset(w.theDate); }
 			w.d.input.blur();
 			
 			if ( typeof w._build[o.mode] === 'undefined' ) {
@@ -953,19 +1015,7 @@
 			}
 			if ( w.d.intHTML.is(':visible') ) { return false; } // Ignore if already open
 				
-			if ( o.dialogForce || ( o.dialogEnable && window.width() < 400 ) ) {
-				w.d.dialogPage = $("<div "+qns+"role='dialog' "+qns+"theme='"+o.theme+"' >" +
-					"<div "+qns+"role='header' "+qns+"theme='"+o.themeHeader+"'>" +
-					"<h1>"+w.d.headerText+"</h1></div><div "+qns+"role='content'></div>")
-					.appendTo( $.mobile.pageContainer )
-					.page().css('minHeight', '0px').addClass(trans);
-				w.d.dialogPage.find('.ui-header').find('a').off('click vclick').on(o.clickEventAlt, function(e) { e.preventDefault(); w.d.input.trigger('datebox', {'method':'close'}); });
-				w.d.mainWrap.append(w.d.intHTML).css({'marginLeft':'auto', 'marginRight':'auto'}).removeClass('ui-datebox-hidden');
-				w.d.dialogPage.find('.ui-content').append(w.d.mainWrap);
-				w.d.input.trigger('datebox',{'method':'postrefresh'});
-				$.mobile.activePage.off( "pagehide.remove" );
-				$.mobile.changePage(w.d.dialogPage, {'transition': trans});
-			} else {
+			if ( o.enablePopup === true ) {
 				w.d.dialogPage = false;
 				w.d.mainWrap.empty();
 				if ( o.useHeader === true ) {
@@ -977,27 +1027,79 @@
 					w.d.mainWrap.append(w.d.headHTML);
 				}
 				w.d.mainWrap.append(w.d.intHTML).css('zIndex', o.zindex);
-				w.d.mainWrap.appendTo($.mobile.activePage);
-				w.d.screen.appendTo($.mobile.activePage);
 				w.d.input.trigger('datebox',{'method':'postrefresh'});
-				w._applyCoords({widget:w});
 				
-				if ( o.useModal === true ) { 
-					if(o.useAnimation) {
-                        w.d.screen.fadeIn('slow');
-                    } else {
-                        w.d.screen.show();
-                    }
-
+				if ( o.useAnimation === true ) {
+					popopts.transition = o.transition;
 				} else {
-					setTimeout(function () { w.d.screen.removeClass('ui-datebox-hidden');}, 500);
+					popopts.transition = "none";
 				}
 				
-				w.d.mainWrap.addClass('ui-overlay-shadow in').removeClass('ui-datebox-hidden');
+				if ( o.popupForceX !== false && o.popupForceY !== false ) {
+					popopts.x = o.popupForceX;
+					popopts.y = o.popupForceY;
+				}
 				
-				$(document).on('orientationchange.datebox', {widget:w}, function(e) { w._applyCoords(e.data); });
-				if ( o.resizeListener === true ) {
-					$(window).on('resize.datebox', {widget:w}, function (e) { w._applyCoords(e.data); });
+				if ( o.popupPosition !== false ) {
+					popopts.positionTo = o.popupPosition;
+				} else {
+					if ( typeof w.baseID !== undefined ) {
+						popopts.positionTo = '#' + w.baseID;
+					} else {
+						popopts.positionTo = 'window';
+					}
+				}
+				
+				if ( o.useModal = true ) { basepop.overlayTheme = "a"; }
+				
+				w.d.mainWrap.removeClass('ui-datebox-hidden').popup(basepop).popup("open", popopts);
+				w.refresh();
+			} else {
+				if ( o.dialogForce || ( o.dialogEnable && window.width() < 400 ) ) {
+					w.d.dialogPage = $("<div "+qns+"role='dialog' "+qns+"theme='"+o.theme+"' >" +
+						"<div "+qns+"role='header' "+qns+"theme='"+o.themeHeader+"'>" +
+						"<h1>"+w.d.headerText+"</h1></div><div "+qns+"role='content'></div>")
+						.appendTo( $.mobile.pageContainer )
+						.page().css('minHeight', '0px').addClass(trans);
+					w.d.dialogPage.find('.ui-header').find('a').off('click vclick').on(o.clickEventAlt, function(e) { e.preventDefault(); w.d.input.trigger('datebox', {'method':'close'}); });
+					w.d.mainWrap.append(w.d.intHTML).css({'marginLeft':'auto', 'marginRight':'auto'}).removeClass('ui-datebox-hidden');
+					w.d.dialogPage.find('.ui-content').append(w.d.mainWrap);
+					w.d.input.trigger('datebox',{'method':'postrefresh'});
+					$.mobile.activePage.off( "pagehide.remove" );
+					$.mobile.changePage(w.d.dialogPage, {'transition': trans});
+				} else {
+					w.d.dialogPage = false;
+					w.d.mainWrap.empty();
+					if ( o.useHeader === true ) {
+						w.d.headHTML = $('<div class="ui-header ui-bar-'+o.themeHeader+'"></div>');
+						$("<a class='ui-btn-left' href='#'>Close</a>").appendTo(w.d.headHTML)
+							.buttonMarkup({ theme  : o.themeHeader, icon   : 'delete', iconpos: 'notext', corners: true, shadow : true })
+							.on(o.clickEventAlt, function(e) { e.preventDefault(); w.d.input.trigger('datebox', {'method':'close'}); });
+						$('<h1 class="ui-title">'+w.d.headerText+'</h1>').appendTo(w.d.headHTML);
+						w.d.mainWrap.append(w.d.headHTML);
+					}
+					w.d.mainWrap.append(w.d.intHTML).css('zIndex', o.zindex);
+					w.d.mainWrap.appendTo($.mobile.activePage);
+					w.d.screen.appendTo($.mobile.activePage);
+					w.d.input.trigger('datebox',{'method':'postrefresh'});
+					w._applyCoords({widget:w});
+					
+					if ( o.useModal === true ) { 
+						if(o.useAnimation) {
+							w.d.screen.fadeIn('slow');
+						} else {
+							w.d.screen.show();
+						}
+					} else {
+						setTimeout(function () { w.d.screen.removeClass('ui-datebox-hidden');}, 500);
+					}
+					
+					w.d.mainWrap.addClass('ui-overlay-shadow in').removeClass('ui-datebox-hidden');
+					
+					$(document).on('orientationchange.datebox', {widget:w}, function(e) { w._applyCoords(e.data); });
+					if ( o.resizeListener === true ) {
+						$(window).on('resize.datebox', {widget:w}, function (e) { w._applyCoords(e.data); });
+					}
 				}
 			}
 		},
@@ -1006,7 +1108,7 @@
 				o = this.options;
 			
 			if ( o.useInlineBlind === true ) { w.d.mainWrap.slideUp(); return true;}
-			if ( o.useInline === true ) { return true; }
+			if ( o.useInline === true || w.d.intHTML === false ) { return true; }
 
 			if ( w.d.dialogPage !== false ) {
 				$(w.d.dialogPage).dialog('close');
@@ -1020,24 +1122,28 @@
 				w.d.wrap.removeClass('ui-focus');
 				w.clearFunc = setTimeout(function () { w.d.dialogPage.empty().remove(); w.clearFunc = false; }, 1500);
 			} else {
-				if ( o.useModal ) {
-                    if(o.useAnimation) {
-                        w.d.screen.fadeOut('slow');
-                    } else {
-                        w.d.screen.hide();
-                    }
-
+				if ( o.enablePopup === true ) {
+					w.d.mainWrap.popup('close');
+					w.d.wrap.removeClass('ui-focus');
 				} else {
-					w.d.screen.addClass('ui-datebox-hidden');
-				}
-				w.d.screen.detach();
-				w.d.mainWrap.addClass('ui-datebox-hidden').removeAttr('style').removeClass('in ui-overlay-shadow').empty().detach();
-				w.d.intHTML.detach();
-				w.d.wrap.removeClass('ui-focus');
-				
-				$(document).off('orientationchange.datebox');
-				if ( o.resizeListener === true ) {
-					$(window).off('resize.datebox');
+					if ( o.useModal ) {
+						if(o.useAnimation) {
+							w.d.screen.fadeOut('slow');
+						} else {
+							w.d.screen.hide();
+						}
+					} else {
+						w.d.screen.addClass('ui-datebox-hidden');
+					}
+					w.d.screen.detach();
+					w.d.mainWrap.addClass('ui-datebox-hidden').removeAttr('style').removeClass('in ui-overlay-shadow').empty().detach();
+					w.d.intHTML.detach();
+					w.d.wrap.removeClass('ui-focus');
+					
+					$(document).off('orientationchange.datebox');
+					if ( o.resizeListener === true ) {
+						$(window).off('resize.datebox');
+					}
 				}
 			}
 					
@@ -1073,7 +1179,7 @@
 		},
 		_check: function() {
 			var w = this,
-				td = null,
+				td = null, 
 				o = this.options;
 			
 			w.dateOK = true;
@@ -1116,11 +1222,20 @@
 				if ( w.theDate < td ) { w.theDate = td; }
 			}
 			
-			if ( $.inArray(o.mode, ['timebox','durationbox','timeflipbox']) > -1 ) { 
+			if ( $.inArray(o.mode, ['timebox','durationbox','durationflipbox','timeflipbox']) > -1 ) { 
 				if ( o.mode === 'timeflipbox' && o.validHours !== false ) {
 					if ( $.inArray(w.theDate.getHours(), o.validHours) < 0 ) { w.dateOK = false; }
 				}
 			} else {
+				if ( o.blackDatesRec !== false ) {
+					for ( i=0; i<o.blackDatesRec.length; i++ ) {
+						if ( 
+							( o.blackDatesRec[i][0] === -1 || o.blackDatesRec[i][0] === year ) &&
+							( o.blackDatesRec[i][1] === -1 || o.blackDatesRec[i][1] === month ) &&
+							( o.blackDatesRec[i][2] === -1 || o.blackDatesRec[i][2] === date )
+						) { w.dateOK = false; } 
+					}
+				}	
 				if ( o.blackDates !== false ) {
 					if ( $.inArray(w.theDate.iso(), o.blackDates) > -1 ) { w.dateOK = false; }
 				}
@@ -1134,9 +1249,10 @@
 				o = this.options;
 				
 			if ( typeof o.overrideDialogLabel === 'undefined' ) {
+				if ( typeof w.d.input.attr('placeholder') !== 'undefined' ) { return w.d.input.attr('placeholder'); }
 				if ( typeof w.d.input.attr('title') !== 'undefined' ) { return w.d.input.attr('title'); }
-				if ( w.d.wrap.parent().find('label[for='+w.d.input.attr('id')+']').text() !== '' ) {
-					return w.d.wrap.parent().find('label[for='+w.d.input.attr('id')+']').text();
+				if ( w.d.wrap.parent().find('label[for=\''+w.d.input.attr('id')+'\']').text() !== '' ) {
+					return w.d.wrap.parent().find('label[for=\''+w.d.input.attr('id')+'\']').text();
 				}
 				return false;
 			}
@@ -1192,6 +1308,19 @@
 		_setOption: function() {
 			$.Widget.prototype._setOption.apply( this, arguments );
 			this.refresh();
+		},
+		getTheDate: function() {
+			return this.theDate;
+		},
+		getLastDur: function() {
+			return this.lastDuration;
+		},
+		setTheDate: function(newDate) {
+			this.theDate = newDate;
+			this.refresh();
+		},
+		callFormat: function(format, date) {
+			return this._formatter(format, date);
 		}
 	});
 	  
@@ -1205,7 +1334,8 @@
 	$( document ).on( "pagecreate create", function( e ){
 		$( document ).trigger( "dateboxbeforecreate" );
 		$( ":jqmData(role='datebox')", e.target ).each(function() {
-			if ( typeof($(this).data('datebox')) === "undefined" ) {
+			var defed = parseInt($.mobile.version.replace(/\./g,''),10) > 111 ? typeof($(this).data('mobileDatebox')) : typeof($(this).data('datebox'));
+			if ( defed === "undefined" ) {
 				$(this).datebox();
 			}
 		});
