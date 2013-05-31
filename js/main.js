@@ -477,10 +477,10 @@ $(document).bind('pageinit', function (e) {
 			var text = $(this).val();
 			oiorest.search(text);
 		});
-	break;
+		break;
 	case "Start":
-	    if(typeof(cordova)=="undefined"){
-		//if ($('#app').length > 0) {
+		if (typeof(cordova) == "undefined") {
+			//if ($('#app').length > 0) {
 			var ua = navigator.userAgent.toLowerCase();
 			if (ua.indexOf("android") > -1) {
 				$('#app').html("<p>Installere Rapport Fra Stedet som app på din smartphone. Klik på nedenstående link.</p><a rel='external' data-ajax='false' href='http://www.rapportfrastedet.dk/RapportFraStedet.apk' ><img src='./img/android.png' alt='Android'/></a>");
@@ -708,7 +708,7 @@ var Rfs = {
 				Rfs.useDrawControl = false;
 				Rfs.showMarker = false;
 				Rfs.url = null;
-				Rfs.FeatureInfo=false;
+				Rfs.FeatureInfo = false;
 				Rfs.kvittering = "<h3>Tak for din indberetning</h3><p>Vil du foretage en ny indberetning?</p>";
 				$("#kortnavbar").hide();
 				$("#backKommune").attr('href', '#/kommune/' + Rfs.kommune.Nr);
@@ -789,7 +789,8 @@ var Rfs = {
 								}
 
 								break;
-							case "FeatureInfo": Rfs.FeatureInfo=true;
+							case "FeatureInfo":
+								Rfs.FeatureInfo = true;
 								break;
 							}
 						}
@@ -1425,7 +1426,6 @@ var Rfs = {
 }
 
 var kommuneNr = null;
-
 
 var oiorest = {
 	kommuneNr : null,
@@ -2173,6 +2173,26 @@ function createMap() {
 			for (mapItem in Rfs.mapSet.MapGroup[mapGroupItem].Map) {
 				var m = Rfs.mapSet.MapGroup[mapGroupItem].Map[mapItem];
 				switch (m.Type[0]) {
+				case "WMS":
+					layer = new OpenLayers.Layer.WMS(m.Extension[0].Options[0].name[0], m.Extension[0].Options[0].url[0].replace(/%26/gi, '&'), {
+							layers : m.Extension[0].Options[0].layer[0]
+						}, {
+							isBaseLayer : true,
+							transitionEffect : 'resize',
+							units : "m",
+							projection : m.Extension[0].ProjectionCode[0],
+							maxExtent : new OpenLayers.Bounds.fromArray(m.Extension[0].Options[0].maxExtent[0].split(','))
+						});
+					map.addLayer(layer);
+					addLayerToList({
+						ol : layer,
+						name : layer.name
+					});
+					map.maxExtent = layer.maxExtent;
+					map.units = "m";
+					map.projection = layer.projection;
+					zoom = true;
+					break;
 				case "WMTS":
 					wmts(m);
 					break;
@@ -2493,7 +2513,7 @@ function mapguide(m) {
 					if (!useHttpTile) {
 						//Uncoment to activate info on layers
 						/*if(Rfs.FeatureInfo)
-						{
+					{
 						var info = new OpenLayers.Control.MapGuideGetFeatureInfo({
 						url : Rfs.tema.MapAgent,
 						layer : layer,
@@ -2505,14 +2525,16 @@ function mapguide(m) {
 						info.activate();
 						}*/
 						//
-						for (var i = 0; i < data.layers.length; i++) {
-							var ml = data.layers[i];
-							if (ml.displayInLegend) {
-								addLayerToList({
-									ol : layer,
-									name : ml.legendLabel,
-									id : ml.uniqueId
-								});
+						if (data.layers.length > 1) {
+							for (var i = 0; i < data.layers.length; i++) {
+								var ml = data.layers[i];
+								if (ml.displayInLegend) {
+									addLayerToList({
+										ol : layer,
+										name : ml.legendLabel,
+										id : ml.uniqueId
+									});
+								}
 							}
 						}
 					}
