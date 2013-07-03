@@ -756,8 +756,8 @@ var Rfs = {
 								search.url = ext.url[0].replace(/%26/gi, '&');
 								search.x1 = ext.x1[0];
 								search.y1 = ext.y1[0];
-								/*if (ext.zoom)
-								search.zoom = ext.zoom[0];*/
+								if (ext.zoom)
+									search.zoom = ext.zoom[0];
 								search.projection = ext.projection[0];
 								oiorest.items.push(search);
 								break;
@@ -1503,7 +1503,7 @@ Search = function (id, title, checked) {
 	this.selection1 = null;
 	this.selection2 = null;
 	this.selection3 = null;
-	//this.zoom = null;
+	this.zoom = null;
 	var self = this;
 
 	var searchList = $("<ul>", {
@@ -1736,11 +1736,12 @@ Search = function (id, title, checked) {
 									pointRadius : 10
 								})
 							]);
-						/*if (self.zoom) {
-						var o = self.zoom / 2;
-						self.map.zoomToExtent([point.x - o, point.y - o, point.x + o, point.y + o]);
-						} else*/
-						map.zoomToExtent(vector.getDataExtent());
+						if (self.zoom) {
+							var o = self.zoom / 2;
+							map.zoomToExtent([point.x - o, point.y - o, point.x + o, point.y + o]);
+						} else {
+							map.zoomToExtent(vector.getDataExtent());
+						}
 					}
 					reverse = true;
 					location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id;
