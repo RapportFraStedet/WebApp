@@ -2186,7 +2186,8 @@ function createMap() {
 					map.addLayer(layer);
 					addLayerToList({
 						ol : layer,
-						name : layer.name
+						name : layer.name,
+						visible : true
 					});
 					map.maxExtent = layer.maxExtent;
 					map.units = "m";
@@ -2204,7 +2205,8 @@ function createMap() {
 					map.addLayer(layer);
 					addLayerToList({
 						ol : layer,
-						name : layer.name
+						name : layer.name,
+						visible : true
 					});
 					zoom = true;
 					break;
@@ -2220,7 +2222,8 @@ function createMap() {
 						map.addLayer(layer);
 						addLayerToList({
 							ol : layer,
-							name : layer.name
+							name : layer.name,
+							visible : true
 						});
 						zoom = true;
 						//map.zoomToMaxExtent();
@@ -2234,7 +2237,8 @@ function createMap() {
 						map.addLayer(layer);
 						addLayerToList({
 							ol : layer,
-							name : layer.name
+							name : layer.name,
+							visible : true
 						});
 						zoom = true;
 						//map.zoomToMaxExtent();
@@ -2248,7 +2252,8 @@ function createMap() {
 						map.addLayer(layer);
 						addLayerToList({
 							ol : layer,
-							name : layer.name
+							name : layer.name,
+							visible : true
 						});
 						zoom = true;
 						//map.zoomToMaxExtent();
@@ -2262,7 +2267,8 @@ function createMap() {
 						map.addLayer(layer);
 						addLayerToList({
 							ol : layer,
-							name : layer.name
+							name : layer.name,
+							visible : true
 						});
 						zoom = true;
 						//map.zoomToMaxExtent();
@@ -2288,7 +2294,8 @@ function createMap() {
 						map.addLayer(layer);
 						addLayerToList({
 							ol : layer,
-							name : layer.name
+							name : layer.name,
+							visible : true
 						});
 						zoom = true;
 						break;
@@ -2303,7 +2310,8 @@ function createMap() {
 						map.addLayer(layer);
 						addLayerToList({
 							ol : layer,
-							name : layer.name
+							name : layer.name,
+							visible : true
 						});
 						zoom = true;
 						break;
@@ -2318,7 +2326,8 @@ function createMap() {
 						map.addLayer(layer);
 						addLayerToList({
 							ol : layer,
-							name : layer.name
+							name : layer.name,
+							visible : true
 						});
 						zoom = true;
 						break;
@@ -2382,7 +2391,8 @@ function wmts(m) {
 			map.maxExtent = layer.maxExtent;
 			addLayerToList({
 				ol : layer,
-				name : layer.name
+				name : layer.name,
+				visible : true
 			});
 			$('#layerslist').listview('refresh');
 			map.zoomToMaxExtent();
@@ -2506,7 +2516,8 @@ function mapguide(m) {
 
 						addLayerToList({
 							ol : layer,
-							name : layer.name
+							name : layer.name,
+							visible : true
 						});
 
 					}
@@ -2525,18 +2536,29 @@ function mapguide(m) {
 						info.activate();
 						}*/
 						//
-						if (data.layers.length > 1) {
-							for (var i = 0; i < data.layers.length; i++) {
-								var ml = data.layers[i];
-								if (ml.displayInLegend) {
-									addLayerToList({
-										ol : layer,
-										name : ml.legendLabel,
-										id : ml.uniqueId
-									});
+
+						for (var i = 0; i < data.layers.length; i++) {
+							var ml = data.layers[i];
+							var visible = true;
+							if (!ml.visible) {
+								visible = false;
+								if (typeof layer.params.hideLayers === "undefined") {
+									layer.params.hideLayers = ml.id
+								} else {
+									layer.params.hideLayers = layer.params.hideLayers + ',' + ml.id;
 								}
 							}
+
+							if (ml.displayInLegend) {
+								addLayerToList({
+									ol : layer,
+									name : ml.legendLabel,
+									id : ml.uniqueId,
+									visible : visible
+								});
+							}
 						}
+
 					}
 					$('#layerslist').listview('refresh');
 					/*if (map.baseLayer && !geolocate.active){
@@ -2594,9 +2616,10 @@ function addLayerToList(layer) {
 	if (layer.ol.isBaseLayer) {
 		map.projection = layer.ol.projection.getCode();
 	}
+
 	var item = $('<li>', {
 			"data-icon" : "check",
-			"class" : layer.ol.visibility ? "checked" : ""
+			"class" : layer.ol.visibility && layer.visible ? "checked" : ""
 		})
 		.append($('<a />', {
 				text : layer.name
