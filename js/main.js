@@ -56,7 +56,7 @@ $(document).on('pageshow', function (event, ui) {
 			url = location.href;
 			break;
 		case "Progress":
-			uploadCamera();
+			upload();
 			break;
 		case "Start":
 			document.title = "Rapport Fra Stedet";
@@ -873,8 +873,26 @@ var Rfs = {
 		});
 
 	},
+	createFieldcontain : function () {
+		return $("<div>", {
+			'data-role' : 'fieldcontain'
+		});
+	},
+	createLabel : function (felt) {
+		var label = null;
+		if (felt.Required == 1)
+			label = $("<label for='" + felt.Id + "'><em>*</em>" + felt.Name + "</label>");
+		else
+			label = $("<label for='" + felt.Id + "'>" + felt.Name + "</label>");
+		return label;
+	},
+
 	createform : function (data, options) {
 		Rfs.rapport = data;
+		if (Rfs.fieldset) {
+			Rfs.fieldset.remove();
+			delete Rfs.fieldset;
+		}
 		var felter = data.Felter;
 		var page = $("#Formular");
 		var header = page.children(":jqmData(role=header)");
@@ -963,80 +981,79 @@ var Rfs = {
 
 		}
 		}*/
-
-		var markup = "<input type='hidden' name='FormId' value='" + Rfs.rapport.FormId + "'/>";
-		markup += "<input type='hidden' name='UniqueId' value='" + Rfs.rapport.UniqueId + "'/>";
-		markup += "<input type='hidden' name='ItemId' value='" + Rfs.rapport.ItemId + "'/>";
-		markup += "<input type='hidden' name='ViewId' value='" + Rfs.rapport.ViewId + "'/>";
-		markup += "<input type='hidden' name='UserId' value='" + Rfs.rapport.UserId + "'/>";
-		markup += "<input type='hidden' name='Date' value='" + Rfs.rapport.Date + "'/>";
-		markup += "<input type='submit' style='display:none' data-role='none'/>";
-		markup += "<fieldset>";
-
+		var markup;
+		var rf = $("#rapportForm");
+		rf.html("");
+		rf.append("<input type='hidden' name='FormId' value='" + Rfs.rapport.FormId + "'/>");
+		rf.append("<input type='hidden' name='UniqueId' value='" + Rfs.rapport.UniqueId + "'/>");
+		rf.append("<input type='hidden' name='ItemId' value='" + Rfs.rapport.ItemId + "'/>");
+		rf.append("<input type='hidden' name='ViewId' value='" + Rfs.rapport.ViewId + "'/>");
+		rf.append("<input type='hidden' name='UserId' value='" + Rfs.rapport.UserId + "'/>");
+		rf.append("<input type='hidden' name='Date' value='" + Rfs.rapport.Date + "'/>");
+		var fs = $("<fieldset>");
+		Rfs.fieldset = fs;
+		rf.append(fs);
 		for (var i = 0; i < felter.length; i++) {
 			var felt = felter[i];
 			if (!felt.Data)
 				felt.Data = "";
-
 			if (felt.Permission == 0) {
 				handled = true;
+				var hidden = $("<input>").attr("type", "hidden").val(felt.Data);
 				switch (felt.TypeId) {
 				case 16:
-					markup += "<input type='hidden' name='Geometri' value='" + felt.Data + "' id='Geometri'";
-					if (felt.Required == 1) {
-						markup += " class='required'";
-					}
-					markup += "/>";
+					hidden.attr({
+						name : 'Geometri',
+						id : 'Geometri'
+					});
 					break;
 				case 17:
-					markup += "<input type='hidden' name='Position' value='" + felt.Data + "' id='Position'";
-					if (felt.Required == 1) {
-						markup += " class='required'";
-					}
-					markup += "/>";
-					break;
+					hidden.attr({
+						name : 'Position',
+						id : 'Position'
+					});
 					break;
 				case 18:
-					markup += "<input type='hidden' name='Accuracy' value='" + felt.Data + "' id='Accuracy'";
-					if (felt.Required == 1) {
-						markup += " class='required'";
-					}
-					markup += "/>";
+					hidden.attr({
+						name : 'Accuracy',
+						id : 'Accuracy'
+					});
 					break;
 				default:
-					markup += "<input type='hidden' name='" + felt.Id + "' value='" + felt.Data + "' id='" + felt.Id + "'";
-					if (felt.Required == 1) {
-						markup += " class='required'";
-					}
-					markup += "/>";
+					hidden.attr({
+						name : felt.Id,
+						id : felt.Id
+					});
 					break;
 				}
+				if (felt.Required == 1)
+					hidden.addClass('required');
+				fs.append(hidden);
 			} else {
+
 				switch (felt.TypeId) {
 				case 1: //Label
-					markup += "<div data-role='fieldcontain'>";
-					markup += "<label for='" + felt.Id + "'>" + felt.Name + "</label>";
-					markup += "</div>";
+					var fieldcontain = Rfs.createFieldcontain();
+					fs.append(fieldcontain);
+					fieldcontain.append(Rfs.createLabel(felt));
+					fieldcontain.trigger("create");
 					break;
 				case 2: //TextBox
-					markup += "<div data-role='fieldcontain'>";
-					markup += "<label for='" + felt.Id + "'>";
+					var fieldcontain = Rfs.createFieldcontain();
+					fs.append(fieldcontain);
+					fieldcontain.append(Rfs.createLabel(felt));
+					var ele = $("<input type='text' id='" + felt.Id + "' name='" + felt.Id + "' value='" + felt.Data + "'/>");
 					if (felt.Required == 1) {
-						markup += "<em>*</em>";
-					}
-					markup += felt.Name + "</label>";
-					markup += "<input type='text' id='" + felt.Id + "' name='" + felt.Id + "' value='" + felt.Data + "'";
-					if (felt.Required == 1) {
-						markup += " class='required'";
+						ele.addClass('required');
 					}
 					if (felt.Permission == 1) {
-						markup += " disabled='disabled'";
+						ele.attr("disabled", 'disabled');
 					}
-					markup += " />";
-					markup += "</div>";
+					fieldcontain.append(ele);
+					fieldcontain.trigger("create");
 					break;
 				case 3: //DropDown
-					markup += "<div data-role='fieldcontain'>";
+					markup = "<div data-role='fieldcontain'>";
 					markup += "<label for='" + felt.Id + "'>";
 					if (felt.Required == 1) {
 						markup += "<em>*</em>";
@@ -1062,9 +1079,10 @@ var Rfs = {
 					}
 					markup += "</select>";
 					markup += "</div>";
+					fs.append($(markup));
 					break;
 				case 4: //RadioButton
-					markup += "<div data-role='fieldcontain'>";
+					markup = "<div data-role='fieldcontain'>";
 					markup += "<div data-role='controlgroup'><legend>";
 					if (felt.Required == 1) {
 						markup += "<em>*</em>";
@@ -1087,9 +1105,10 @@ var Rfs = {
 					}
 					markup += "</div>";
 					markup += "</div>";
+					fs.append($(markup));
 					break;
 				case 5: //TextArea
-					markup += "<div data-role='fieldcontain'>";
+					markup = "<div data-role='fieldcontain'>";
 					markup += "<label for='" + felt.Id + "'>";
 					if (felt.Required == 1) {
 						markup += "<em>*</em>";
@@ -1106,11 +1125,12 @@ var Rfs = {
 					markup += felt.Data;
 					markup += "</textarea>";
 					markup += "</div>";
+					fs.append($(markup));
 					break;
 				case 6: //CheckBox
 				case 12: //Email ved oprettelse
 				case 13: //Email ved ændring
-					markup += "<div data-role='fieldcontain'>";
+					markup = "<div data-role='fieldcontain'>";
 					markup += "<label for='" + felt.Id + "'>";
 					if (felt.Required == 1) {
 						markup += "<em>*</em>";
@@ -1131,9 +1151,10 @@ var Rfs = {
 						markup += "<option value='on'>Ja</option>";
 					markup += "</select>";
 					markup += "</div>";
+					fs.append($(markup));
 					break;
 				case 7: //Email
-					markup += "<div data-role='fieldcontain'>";
+					markup = "<div data-role='fieldcontain'>";
 					markup += "<label for='" + felt.Id + "'>";
 					if (felt.Required == 1) {
 						markup += "<em>*</em>";
@@ -1148,20 +1169,31 @@ var Rfs = {
 					}
 					markup += " />";
 					markup += "</div>";
+					fs.append($(markup));
 					break;
 				case 8: //Upload
-					markup += markupCamera(felt);
+					var uploadtype = $("<div>");
+					fs.append(uploadtype);
+					uploadtype.photo({
+						id : felt.Id,
+						required : felt.Required,
+						name : felt.Name,
+						permission : felt.Permission
+					});
+					//uploadtype.photo();
+					//uploadtype.colorize();
 					break;
 				case 10: //Date
-					markup += markupDate(felt);
+					fs.append($(markupDate(felt)));
 					break;
 				case 14: //URL link
-					markup += "<div data-role='fieldcontain'>";
+					markup = "<div data-role='fieldcontain'>";
 					markup += "<a data-role='button' data-inline='true' href='" + felt.Data + "'>" + felt.Name + "</a>";
 					markup += "</div>";
+					fs.append($(markup));
 					break;
 				case 15: //NumberBox
-					markup += "<div data-role='fieldcontain'>";
+					markup = "<div data-role='fieldcontain'>";
 					markup += "<label for='" + felt.Id + "'>";
 					if (felt.Required == 1) {
 						markup += "<em>*</em>";
@@ -1176,28 +1208,26 @@ var Rfs = {
 					}
 					markup += " />";
 					markup += "</div>";
+					fs.append($(markup));
 					break;
 				case 16: //Geometri
-					markup += "<div data-role='fieldcontain'>";
-					markup += "<label for='Geometri'>";
+					var label = Rfs.createLabel(felt);
+					var fieldcontain = Rfs.createFieldcontain();
+					fs.append(fieldcontain);
+					label.attr("for", "Geometri");
+					fieldcontain.append(label);
+					var ele = $("<textarea id='Geometri' name='Geometri'>" + felt.Data + "</textarea>");
 					if (felt.Required == 1) {
-						markup += "<em>*</em>";
-					}
-					markup += felt.Name + "</label>";
-					markup += "<textarea id='Geometri' name='Geometri'";
-					if (felt.Required == 1) {
-						markup += " class='required'";
+						ele.addClass('required');
 					}
 					if (felt.Permission == 1) {
-						markup += " disabled='disabled'";
+						ele.attr("disabled", 'disabled');
 					}
-					markup += ">";
-					markup += felt.Data;
-					markup += "</textarea>";
-					markup += "</div>";
+					fieldcontain.append(ele);
+					fieldcontain.trigger("create");
 					break;
 				case 17: //Position
-					markup += "<div data-role='fieldcontain'>";
+					markup = "<div data-role='fieldcontain'>";
 					markup += "<label for='Position'>";
 					if (felt.Required == 1) {
 						markup += "<em>*</em>";
@@ -1214,9 +1244,10 @@ var Rfs = {
 					markup += felt.Data;
 					markup += "</textarea>";
 					markup += "</div>";
+					fs.append($(markup));
 					break;
 				case 18: //Accuracy
-					markup += "<div data-role='fieldcontain'>";
+					markup = "<div data-role='fieldcontain'>";
 					markup += "<label for='Accuracy'>";
 					if (felt.Required == 1) {
 						markup += "<em>*</em>";
@@ -1231,28 +1262,313 @@ var Rfs = {
 					}
 					markup += " />";
 					markup += "</div>";
+					fs.append($(markup));
 					break;
 				case 22: //Skillelinie
-					markup += "<hr />";
+					fs.append($("<hr />"));
 					break;
 				case 23: //Overskrift1
-					markup += "<h1>" + felt.Name + "</h1>";
+					markup = "<h1>" + felt.Name + "</h1>";
+					fs.append($(markup));
 					break;
 				case 24: //Paragraph
-					markup += "<p>" + felt.Name + "</p>";
+					markup = "<p>" + felt.Name + "</p>";
+					fs.append($(markup));
+					break;
 				}
+
 			}
+		}
+		/*var markup = "<input type='hidden' name='FormId' value='" + Rfs.rapport.FormId + "'/>";
+		markup += "<input type='hidden' name='UniqueId' value='" + Rfs.rapport.UniqueId + "'/>";
+		markup += "<input type='hidden' name='ItemId' value='" + Rfs.rapport.ItemId + "'/>";
+		markup += "<input type='hidden' name='ViewId' value='" + Rfs.rapport.ViewId + "'/>";
+		markup += "<input type='hidden' name='UserId' value='" + Rfs.rapport.UserId + "'/>";
+		markup += "<input type='hidden' name='Date' value='" + Rfs.rapport.Date + "'/>";
+		markup += "<input type='submit' style='display:none' data-role='none'/>";
+		markup += "<fieldset>";
+
+		for (var i = 0; i < felter.length; i++) {
+		var felt = felter[i];
+		if (!felt.Data)
+		felt.Data = "";
+
+		if (felt.Permission == 0) {
+		handled = true;
+		switch (felt.TypeId) {
+		case 16:
+		markup += "<input type='hidden' name='Geometri' value='" + felt.Data + "' id='Geometri'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		markup += "/>";
+		break;
+		case 17:
+		markup += "<input type='hidden' name='Position' value='" + felt.Data + "' id='Position'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		markup += "/>";
+		break;
+		break;
+		case 18:
+		markup += "<input type='hidden' name='Accuracy' value='" + felt.Data + "' id='Accuracy'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		markup += "/>";
+		break;
+		default:
+		markup += "<input type='hidden' name='" + felt.Id + "' value='" + felt.Data + "' id='" + felt.Id + "'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		markup += "/>";
+		break;
+		}
+		} else {
+		switch (felt.TypeId) {
+		case 1: //Label
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<label for='" + felt.Id + "'>" + felt.Name + "</label>";
+		markup += "</div>";
+		break;
+		case 2: //TextBox
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<label for='" + felt.Id + "'>";
+		if (felt.Required == 1) {
+		markup += "<em>*</em>";
+		}
+		markup += felt.Name + "</label>";
+		markup += "<input type='text' id='" + felt.Id + "' name='" + felt.Id + "' value='" + felt.Data + "'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		if (felt.Permission == 1) {
+		markup += " disabled='disabled'";
+		}
+		markup += " />";
+		markup += "</div>";
+		break;
+		case 3: //DropDown
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<label for='" + felt.Id + "'>";
+		if (felt.Required == 1) {
+		markup += "<em>*</em>";
+		}
+		markup += felt.Name + "</label>";
+		markup += "<select id='" + felt.Id + "' name='" + felt.Id + "' value='" + felt.Data + "'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		if (felt.Permission == 1) {
+		markup += " disabled='disabled'";
+		}
+		markup += ">";
+		markup += "<option value='' data-placeholder='true'>-- Vælg --</option>";
+		var selections = felt.Selections;
+		for (var j = 0; j < selections.length; j++) {
+		var selection = selections[j];
+		markup += "<option value='" + selection.Name + "'";
+		if (selection.Selected == 1) {
+		markup += " selected='selected'";
+		}
+		markup += ">" + selection.Name + "</option>";
+		}
+		markup += "</select>";
+		markup += "</div>";
+		break;
+		case 4: //RadioButton
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<div data-role='controlgroup'><legend>";
+		if (felt.Required == 1) {
+		markup += "<em>*</em>";
+		}
+		markup += felt.Name + "</legend>";
+		var selections = felt.Selections;
+		for (var j = 0; j < selections.length; j++) {
+		var selection = selections[j];
+		markup += "<input type='radio' id='" + selection.Id + "' name='" + felt.Id + "' value='" + selection.Name + "'";
+		if (selection.Selected == 1) {
+		markup += " checked='checked'";
+		}
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		if (felt.Permission == 1) {
+		markup += " disabled='disabled'";
+		}
+		markup += "/><label for='" + selection.Id + "'>" + selection.Name + "</label>";
+		}
+		markup += "</div>";
+		markup += "</div>";
+		break;
+		case 5: //TextArea
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<label for='" + felt.Id + "'>";
+		if (felt.Required == 1) {
+		markup += "<em>*</em>";
+		}
+		markup += felt.Name + "</label>";
+		markup += "<textarea id='" + felt.Id + "' name='" + felt.Id + "'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		if (felt.Permission == 1) {
+		markup += " disabled='disabled'";
+		}
+		markup += ">";
+		markup += felt.Data;
+		markup += "</textarea>";
+		markup += "</div>";
+		break;
+		case 6: //CheckBox
+		case 12: //Email ved oprettelse
+		case 13: //Email ved ændring
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<label for='" + felt.Id + "'>";
+		if (felt.Required == 1) {
+		markup += "<em>*</em>";
+		}
+		markup += felt.Name + "</label>";
+		markup += "<select id='" + felt.Id + "' name='" + felt.Id + "' data-role='slider'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		if (felt.Permission == 1) {
+		markup += " disabled='disabled'";
+		}
+		markup += ">";
+		markup += "<option value='off'>Nej</option>";
+		if (felt.Data.toLowerCase() == 'true')
+		markup += "<option value='on' selected='selected'>Ja</option>";
+		else
+		markup += "<option value='on'>Ja</option>";
+		markup += "</select>";
+		markup += "</div>";
+		break;
+		case 7: //Email
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<label for='" + felt.Id + "'>";
+		if (felt.Required == 1) {
+		markup += "<em>*</em>";
+		}
+		markup += felt.Name + "</label>";
+		markup += "<input type='email' id='" + felt.Id + "' name='" + felt.Id + "' value='" + felt.Data + "'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		if (felt.Permission == 1) {
+		markup += " disabled='disabled'";
+		}
+		markup += " />";
+		markup += "</div>";
+		break;
+		case 8: //Upload
+		markup += markupCamera(felt);
+		break;
+		case 10: //Date
+		markup += markupDate(felt);
+		break;
+		case 14: //URL link
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<a data-role='button' data-inline='true' href='" + felt.Data + "'>" + felt.Name + "</a>";
+		markup += "</div>";
+		break;
+		case 15: //NumberBox
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<label for='" + felt.Id + "'>";
+		if (felt.Required == 1) {
+		markup += "<em>*</em>";
+		}
+		markup += felt.Name + "</label>";
+		markup += "<input type='text' id='" + felt.Id + "' name='" + felt.Id + "' value='" + felt.Data + "'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		if (felt.Permission == 1) {
+		markup += " disabled='disabled'";
+		}
+		markup += " />";
+		markup += "</div>";
+		break;
+		case 16: //Geometri
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<label for='Geometri'>";
+		if (felt.Required == 1) {
+		markup += "<em>*</em>";
+		}
+		markup += felt.Name + "</label>";
+		markup += "<textarea id='Geometri' name='Geometri'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		if (felt.Permission == 1) {
+		markup += " disabled='disabled'";
+		}
+		markup += ">";
+		markup += felt.Data;
+		markup += "</textarea>";
+		markup += "</div>";
+		break;
+		case 17: //Position
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<label for='Position'>";
+		if (felt.Required == 1) {
+		markup += "<em>*</em>";
+		}
+		markup += felt.Name + "</label>";
+		markup += "<textarea id='Position' name='Position'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		if (felt.Permission == 1) {
+		markup += " disabled='disabled'";
+		}
+		markup += ">";
+		markup += felt.Data;
+		markup += "</textarea>";
+		markup += "</div>";
+		break;
+		case 18: //Accuracy
+		markup += "<div data-role='fieldcontain'>";
+		markup += "<label for='Accuracy'>";
+		if (felt.Required == 1) {
+		markup += "<em>*</em>";
+		}
+		markup += felt.Name + "</label>";
+		markup += "<input type='text' id='Accuracy' name='Accuracy' value='" + felt.Data + "'";
+		if (felt.Required == 1) {
+		markup += " class='required'";
+		}
+		if (felt.Permission == 1) {
+		markup += " disabled='disabled'";
+		}
+		markup += " />";
+		markup += "</div>";
+		break;
+		case 22: //Skillelinie
+		markup += "<hr />";
+		break;
+		case 23: //Overskrift1
+		markup += "<h1>" + felt.Name + "</h1>";
+		break;
+		case 24: //Paragraph
+		markup += "<p>" + felt.Name + "</p>";
+		}
+		}
 		}
 
 		markup += "</fieldset>";
 		//$(markup).appendTo("#rapportForm").trigger("create");
 		if (formularInit)
-			$("#rapportForm").html(markup).trigger("create");
+		$("#rapportForm").html(markup).trigger("create");
 		else
-			$("#rapportForm").html(markup);
+		$("#rapportForm").html(markup);
 		//page.trigger("create");
-		$(':file').bind('change', this.inputChanged);
-
+		$(':file').bind('change', this.inputChanged);*/
+		if (formularInit)
+			$("#rapportForm").trigger("create");
 		$("#rapportForm").validate({
 			ignore : "",
 			highlight : function (element, errorClass, validClass) {
@@ -1307,6 +1623,22 @@ var Rfs = {
 				// Closure to capture the file information.
 				reader.onload = (function (theFile) {
 					return function (e) {
+						var image = new Image();
+						image.onload = function (evt) {
+							var width = this.width;
+							var height = this.height;
+							var canvas = $("#C" + imageId)[0];
+							var q = 1;
+							canvas.height = height / q;
+							canvas.width = width / q;
+							var ctx = canvas.getContext("2d");
+							ctx.drawImage(this, 0, 0, width / q, height / q);
+							$("#A" + imageId).attr("src", canvas.toDataURL('image/jpeg', 1)).css('display', 'inline');
+							$("#" + imageId).val(canvas.toDataURL('image/jpeg', 1));
+
+						};
+						image.src = e.target.result;
+
 						$("#A" + imageId).attr("src", e.target.result).css('display', 'inline');
 						$("#" + imageId).val(e.target.result);
 						var input = $("input[name='B" + imageId + "']");

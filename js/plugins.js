@@ -47,11 +47,29 @@ if (typeof(cordova)!="undefined") {
 	});
 } else if (html5File() || html5Camera()) {
 	Modernizr.load({
-		load : 'js/vendor/camera-html5.js'
+		load : 'js/vendor/photo-html5.js'
 	});
+	if(window.FormData){
+		Modernizr.load({
+			load : 'js/vendor/upload-html5.js'
+		});
+	} else {
+		Modernizr.load({
+			load : 'js/vendor/upload.js'
+		});
+	}
 } else {
 	Modernizr.load({
 		load : 'js/vendor/camera.js'
 	});
+	if(window.FormData){
+		Modernizr.load({
+			load : 'js/vendor/upload-html5.js'
+		});
+	} else {
+		Modernizr.load({
+			load : 'js/vendor/upload.js'
+		});
+	}
 }
 

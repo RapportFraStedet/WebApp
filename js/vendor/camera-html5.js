@@ -113,6 +113,7 @@ fieldcontain.trigger("create");*/
 			markup += " class='required'";
 		}
 	markup +="/>";
+	markup += "<canvas id='C" + felt.Id + "' width='100%' style='display: none;'></canvas>";
 	markup += "<img id='A" + felt.Id + "' width='100%' style='display: none;'/>";
 	markup += "</div></div>";
 	return markup;
