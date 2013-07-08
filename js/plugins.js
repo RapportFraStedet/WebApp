@@ -47,7 +47,7 @@ if (typeof(cordova)!="undefined") {
 	});
 } else if (html5File() || html5Camera()) {
 	Modernizr.load({
-		load : 'js/vendor/photo-html5.js'
+		load : ['js/vendor/photo-html5.js','js/vendor/exif.js','js/vendor/canvasresize.js']//,'js/vendor/canvas-to-blob.js','js/vendor/load-image.min.js']
 	});
 	if(window.FormData){
 		Modernizr.load({
