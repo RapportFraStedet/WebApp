@@ -91,7 +91,77 @@ $(function () {
 			return label;
 		},
 		_changeImage : function () {
-			var image = new Image();
+			canvasResize(this.resultFile, {
+					scale: this.imageSizeValue,
+			        quality: this.imageQualityValue,
+			        //rotate: 90,
+			        callback: (function(self){return function(data, width, height) {
+						self.imageA.attr("src", data).css('display', 'inline');
+						self.hidden.val(data);
+						var b = data.split(',')[1];
+						si = atob(b).length;
+						if (si > 1000000) {
+							self.textSize.text((si / (1024 * 1024)).toFixed(1) + ' Mb, ' + width + '☓' + height);
+						} else if (si > 1000) {
+							self.textSize.text(Math.round(si / (1024)) + ' Kb, ' + width + '☓' + height);
+						}
+						if (width < $(".cameraButtons").width()) {
+							self.imageA.width(width);
+						} else {
+							self.imageA.css('width', '100%');
+						}
+			            
+			        };})(this)
+			    });
+				/*loadImage(
+				    this.resultFile,
+				    (function(self){return function (img) {
+				        document.body.appendChild(img);
+						var data = img.src;
+						self.imageA.attr("src", data).css('display', 'inline');
+						self.hidden.val(data);
+						var b = data.split(',')[1];
+						si = atob(b).length;
+						if (si > 1000000) {
+							self.textSize.text((si / (1024 * 1024)).toFixed(1) + ' Mb, ' + width + '☓' + height);
+						} else if (si > 1000) {
+							self.textSize.text(Math.round(si / (1024)) + ' Kb, ' + width + '☓' + height);
+						}
+						if (width < $(".cameraButtons").width()) {
+							self.imageA.width(width);
+						} else {
+							self.imageA.css('width', '100%');
+						}
+				    };})(this),
+				    {
+				        maxWidth: 600,
+				        maxHeight: 300,
+				        minWidth: 100,
+				        minHeight: 50,
+				        canvas: true
+				    }
+				);
+				loadImage.parseMetaData(
+				    this.resultFile,
+				    function (data) {
+				        if (!data.imageHead) {
+				            return;
+				        }
+				        // Combine data.imageHead with the image body of a resized file
+				        // to create scaled images with the original image meta data, e.g.:
+				        var blob = new Blob([
+				            data.imageHead,
+				            // Resized images always have a head size of 20 bytes,
+				            // including the JPEG marker and a minimal JFIF header:
+				            loadImage.blobSlice.call(resizedImage, 20)
+				        ], {type: resizedImage.type});
+				    },
+				    {
+				        maxMetaDataSize: 262144,
+				        disableImageHead: false
+				    }
+				);*/
+			/*var image = new Image();
 			image.onload = (function (self) {
 				return function (evt) {
 					var width = this.width;
@@ -117,13 +187,16 @@ $(function () {
 					}
 				};
 			})(this);
-			image.src = this.resultFile;
+			image.src = this.resultFile;*/
 		},
 		_showFile : function (e) {
 
 			if (html5File()) {
 				var blob = this.file[0].files[0]; // FileList object
 				if (blob.type.match('image.*')) {
+					this.resultFile = blob;
+					this._changeImage();
+					/*
 					var reader = new FileReader();
 
 					// Closure to capture the file information.
@@ -131,19 +204,11 @@ $(function () {
 						return function (e) {
 							self.resultFile = e.target.result;
 							self._changeImage();
-							/*self.imageA.attr("src", e.target.result).css('display', 'inline');
-							self.hidden.val(e.target.result);
-							var input = $("input[name='B" + imageId + "']");
-							if (input.length > 0) {
-							input.unbind('change');
-							input[0].outerHTML = input[0].outerHTML;
-							$("input[name='B" + imageId + "']").bind('change', self._showFile);
-							}*/
 						};
 					})(this);
 
 					// Read in the image file as a data URL.
-					reader.readAsDataURL(blob);
+					reader.readAsDataURL(blob);*/
 				}
 			}
 		},
