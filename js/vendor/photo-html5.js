@@ -74,7 +74,7 @@ $(function () {
 					this._changeImage();
 				}
 			});
-			this.canvas = $("<canvas>").appendTo(this.element).hide();
+
 			this.hidden = $("<input type='hidden' id='" + this.options.id + "' name='" + this.options.id + "' val=''/>").appendTo(this.element);
 			if (this.options.required == 1) {
 				this.hidden.addClass('required');
@@ -96,15 +96,21 @@ $(function () {
 			        quality: this.imageQualityValue,
 			        //rotate: 90,
 			        callback: (function(self){return function(data, width, height) {
+						
 						self.imageA.attr("src", data).css('display', 'inline');
 						self.hidden.val(data);
-						var b = data.split(',')[1];
-						si = atob(b).length;
-						if (si > 1000000) {
-							self.textSize.text((si / (1024 * 1024)).toFixed(1) + ' Mb, ' + width + '☓' + height);
-						} else if (si > 1000) {
-							self.textSize.text(Math.round(si / (1024)) + ' Kb, ' + width + '☓' + height);
+						var info = data.split(',');
+						var t = "";
+						if(info.length>0){
+							
+							var si = atob(info[1]).length;
+							if (si > 1000000) {
+								t = (si / (1024 * 1024)).toFixed(1) + ' Mb, ';
+							} else if (si > 1000) {
+								t = Math.round(si / (1024)) + ' Kb, ';
+							}
 						}
+						self.textSize.text(t+ width + '☓' + height);
 						if (width < $(".cameraButtons").width()) {
 							self.imageA.width(width);
 						} else {
@@ -194,9 +200,9 @@ $(function () {
 			if (html5File()) {
 				var blob = this.file[0].files[0]; // FileList object
 				if (blob.type.match('image.*')) {
-					this.resultFile = blob;
-					this._changeImage();
-					/*
+					//this.resultFile = blob;
+					//this._changeImage();
+					
 					var reader = new FileReader();
 
 					// Closure to capture the file information.
@@ -208,7 +214,7 @@ $(function () {
 					})(this);
 
 					// Read in the image file as a data URL.
-					reader.readAsDataURL(blob);*/
+					reader.readAsDataURL(blob);
 				}
 			}
 		},
