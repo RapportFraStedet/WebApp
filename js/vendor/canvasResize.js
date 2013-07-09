@@ -70,19 +70,19 @@
          * In iOS, larger images than 2M pixels may be subsampled in rendering.
          */
         detectSubsampling: function(img) {
-            var iw = img.width, ih = img.height;
-            if (iw * ih > 1048576) { // subsampling may happen over megapixel image
-                var canvas = document.createElement('canvas');
-                canvas.width = canvas.height = 1;
-                var ctx = canvas.getContext('2d');
-                ctx.drawImage(img, -iw + 1, 0);
-                // subsampled image becomes half smaller in rendering size.
-                // check alpha channel value to confirm image is covering edge pixel or not.
-                // if alpha value is 0 image is not covering, hence subsampled.
-                return ctx.getImageData(0, 0, 1, 1).data[3] === 0;
-            } else {
-                return false;
-            }
+			var iw = img.naturalWidth, ih = img.naturalHeight;
+			    if (iw * ih > 1024 * 1024) { // subsampling may happen over megapixel image
+			      var canvas = document.createElement('canvas');
+			      canvas.width = canvas.height = 1;
+			      var ctx = canvas.getContext('2d');
+			      ctx.drawImage(img, -iw + 1, 0);
+			      // subsampled image becomes half smaller in rendering size.
+			      // check alpha channel value to confirm image is covering edge pixel or not.
+			      // if alpha value is 0 image is not covering, hence subsampled.
+			      return ctx.getImageData(0, 0, 1, 1).data[3] === 0;
+			    } else {
+			      return false;
+			    }
         },
         /**
          * Update the orientation according to the specified rotation angle
@@ -113,89 +113,86 @@
          * Orientation value is from EXIF tag
          */
         transformCoordinate: function(canvas, width, height, orientation) {
-            switch (orientation) {
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                    canvas.width = height;
-                    canvas.height = width;
-                    break;
-                default:
-                    canvas.width = width;
-                    canvas.height = height;
-            }
-            var ctx = canvas.getContext('2d');
-            switch (orientation) {
-                case 1:
-                    // nothing
-                    break;
-                case 2:
-                    // horizontal flip
-                    ctx.translate(width, 0);
-                    ctx.scale(-1, 1);
-                    break;
-                case 3:
-                    // 180 rotate left
-                    ctx.translate(width, height);
-                    ctx.rotate(Math.PI);
-                    break;
-                case 4:
-                    // vertical flip
-                    ctx.translate(0, height);
-                    ctx.scale(1, -1);
-                    break;
-                case 5:
-                    // vertical flip + 90 rotate right
-                    ctx.rotate(0.5 * Math.PI);
-                    ctx.scale(1, -1);
-                    break;
-                case 6:
-                    // 90 rotate right
-                    ctx.rotate(0.5 * Math.PI);
-                    ctx.translate(0, -height);
-                    break;
-                case 7:
-                    // horizontal flip + 90 rotate right
-                    ctx.rotate(0.5 * Math.PI);
-                    ctx.translate(width, -height);
-                    ctx.scale(-1, 1);
-                    break;
-                case 8:
-                    // 90 rotate left
-                    ctx.rotate(-0.5 * Math.PI);
-                    ctx.translate(-width, 0);
-                    break;
-                default:
-                    break;
-            }
+			switch (orientation) {
+			      case 5:
+			      case 6:
+			      case 7:
+			      case 8:
+			        canvas.width = height;
+			        canvas.height = width;
+			        break;
+			      default:
+			        canvas.width = width;
+			        canvas.height = height;
+			    }
+			    var ctx = canvas.getContext('2d');
+			    switch (orientation) {
+			      case 2:
+			        // horizontal flip
+			        ctx.translate(width, 0);
+			        ctx.scale(-1, 1);
+			        break;
+			      case 3:
+			        // 180 rotate left
+			        ctx.translate(width, height);
+			        ctx.rotate(Math.PI);
+			        break;
+			      case 4:
+			        // vertical flip
+			        ctx.translate(0, height);
+			        ctx.scale(1, -1);
+			        break;
+			      case 5:
+			        // vertical flip + 90 rotate right
+			        ctx.rotate(0.5 * Math.PI);
+			        ctx.scale(1, -1);
+			        break;
+			      case 6:
+			        // 90 rotate right
+			        ctx.rotate(0.5 * Math.PI);
+			        ctx.translate(0, -height);
+			        break;
+			      case 7:
+			        // horizontal flip + 90 rotate right
+			        ctx.rotate(0.5 * Math.PI);
+			        ctx.translate(width, -height);
+			        ctx.scale(-1, 1);
+			        break;
+			      case 8:
+			        // 90 rotate left
+			        ctx.rotate(-0.5 * Math.PI);
+			        ctx.translate(-width, 0);
+			        break;
+			      default:
+			        break;
+			    }
         },
         /**
          * Detecting vertical squash in loaded image.
          * Fixes a bug which squash image vertically while drawing into canvas for some images.
          */
         detectVerticalSquash: function(img, iw, ih) {
-            var canvas = document.createElement('canvas');
-            canvas.width = 1;
-            canvas.height = ih;
-            var ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            var data = ctx.getImageData(0, 0, 1, ih).data;
-            // search image edge pixel position in case it is squashed vertically.
-            var sy = 0;
-            var ey = ih;
-            var py = ih;
-            while (py > sy) {
-                var alpha = data[(py - 1) * 4 + 3];
-                if (alpha === 0) {
-                    ey = py;
-                } else {
-                    sy = py;
-                }
-                py = (ey + sy) >> 1;
-            }
-            var ratio = py / ih;
-            return ratio === 0 ? 1 : ratio;
+			var canvas = document.createElement('canvas');
+			    canvas.width = 1;
+			    canvas.height = ih;
+			    var ctx = canvas.getContext('2d');
+			    ctx.drawImage(img, 0, 0);
+			    var data = ctx.getImageData(0, 0, 1, ih).data;
+			    // search image edge pixel position in case it is squashed vertically.
+			    var sy = 0;
+			    var ey = ih;
+			    var py = ih;
+			    while (py > sy) {
+			      var alpha = data[(py - 1) * 4 + 3];
+			      if (alpha === 0) {
+			        ey = py;
+			      } else {
+			        sy = py;
+			      }
+			      py = (ey + sy) >> 1;
+			    }
+			    var ratio = (py / ih);
+			    return (ratio===0)?1:ratio;
         },
         callback: function(d) {
             return d;
@@ -244,13 +241,17 @@
         init: function() {
             //this.options.init(this);
             var $this = this;
-            var file = this.file;
+            /*var file = this.file;
 
             var reader = new FileReader();
             reader.onloadend = function(e) {
-
-                var dataURL = e.target.result;
-                var byteString = atob(dataURL.split(',')[1]);
+				
+                var dataURL = e.target.result;*/
+				var dataURL = this.file;
+				var imageInfo = dataURL.split(',');
+				var imageType= imageInfo[0].split(';')[0].split(':')[1];
+                //var byteString = atob(dataURL.split(',')[1]);
+				var byteString = atob(imageInfo[1]);
                 var binary = new BinaryFile(byteString, 0, byteString.length);
                 var exif = EXIF.readFromBinaryFile(binary);
 
@@ -259,11 +260,11 @@
 
                     var orientation = exif['Orientation'] || 1;
                     orientation = methods.rotate(orientation, $this.options.rotate);
-
+				
                     // CW or CCW ? replace width and height
                     var size = (orientation >= 5 && orientation <= 8)
-                            ? methods.newsize(img.height, img.width, img.width * $this.options.scale / 100, img.height * $this.options.scale / 100, $this.options.crop)
-                            : methods.newsize(img.width, img.height, img.width * $this.options.scale / 100, img.height * $this.options.scale / 100, $this.options.crop);
+                            ? methods.newsize(img.height, img.width, Math.floor(img.width * $this.options.scale / 100), Math.floor(img.height * $this.options.scale / 100), $this.options.crop)
+                            : methods.newsize(img.width, img.height, Math.floor(img.width * $this.options.scale / 100), Math.floor(img.height * $this.options.scale / 100), $this.options.crop);
 
                     var iw = img.width, ih = img.height;
                     var width = size.width, height = size.height;
@@ -283,7 +284,7 @@
                     tmpCanvas.width = tmpCanvas.height = d;
                     var tmpCtx = tmpCanvas.getContext('2d');
                     var vertSquashRatio = methods.detectVerticalSquash(img, iw, ih);
-                    var sy = 0;
+                    /*var sy = 0;
                     while (sy < ih) {
                         var sh = sy + d > ih ? ih - sy : d;
                         var sx = 0;
@@ -299,7 +300,24 @@
                             sx += d;
                         }
                         sy += d;
-                    }
+                    }*/
+					var dw = Math.ceil(d * width / iw);
+					    var dh = Math.ceil(d * height / ih / vertSquashRatio);
+					    var sy = 0;
+					    var dy = 0;
+					    while (sy < ih) {
+					      var sx = 0;
+					      var dx = 0;
+					      while (sx < iw) {
+					        tmpCtx.clearRect(0, 0, d, d);
+					        tmpCtx.drawImage(img, -sx, -sy);
+					        ctx.drawImage(tmpCanvas, 0, 0, d, d, dx, dy, dw, dh);
+					        sx += d;
+					        dx += dw;
+					      }
+					      sy += d;
+					      dy += dh;
+					    }
                     ctx.restore();
                     tmpCanvas = tmpCtx = null;
 
@@ -309,34 +327,37 @@
                     newcanvas.height = size.cropped === 'w' ? width : height;
                     var x = size.cropped === 'h' ? (height - width) * .5 : 0;
                     var y = size.cropped === 'w' ? (width - height) * .5 : 0;
-                    newctx = newcanvas.getContext('2d');
+                    var newctx = newcanvas.getContext('2d');
                     newctx.drawImage(canvas, x, y, width, height);
 
-                    console.log(file, file.type);
-                    if (file.type === "image/png") {
-                        var data = newcanvas.toDataURL(file.type);
+                    //console.log(file, file.type);
+                    if (imageType === "image/png") {
+                        var data = newcanvas.toDataURL(imageType);
                     } else {
                         var data = newcanvas.toDataURL("image/jpeg", ($this.options.quality * .01));
                     }
-
+					if(data.length<10)
+					{
+						$this.options.callback($this.file, img.width, img.height);
+					} else{
                     // CALLBACK
                     $this.options.callback(data, newcanvas.width, newcanvas.height);
-
+				}
                     // });
                 };
                 img.src = dataURL;
                 // =====================================================
 
-            };
-            reader.readAsDataURL(file);
+				//};
+            //reader.readAsDataURL(file);
             //reader.readAsBinaryString(file);
 
         }
     };
     $[pluginName] = function(file, options) {
-        if (typeof file === 'string')
+        /*if (typeof file === 'string')
             return methods[file](options);
-        else
+        else*/
             new Plugin(file, options);
     };
 
