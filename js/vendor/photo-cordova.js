@@ -81,37 +81,37 @@ You should have received a copy of the GNU General Public License along with "Ra
 					});
 				}
 			});
-			
-			var imageOptions = $("<div data-role='collapsible'>").appendTo(div);
-			$("<h4>Options</h4>").appendTo(imageOptions);
-			this.textSize = $("<div>").appendTo(imageOptions);
-			$("<label for='imageSize-" + this.options.id + "'>Billede størrelse</label>").appendTo(imageOptions);
-			this.imageSize = $("<input type='number' data-type='range' name='imageSize-" + this.options.id + "' id='imageSize-" + this.options.id + "' min='0' max='100' value='"+this.options.imageSizeValue+"' data-highlight='true'/>").
-				appendTo(imageOptions).slider();
-			this._on(this.imageSize, {
-				"slidestop" : function () {
-					this.imageSizeValue = this.imageSize.val();
-					this._changeImage();
-				},
-				"keyup" : function () {
-					this.imageSizeValue = this.imageSize.val();
-					this._changeImage();
-				}
-			});
-			$("<label for='imageQuality-" + this.options.id + "'>Billede kvalitet</label>").appendTo(imageOptions);
-			this.imageQuality = $("<input type='number' data-type='range' name='imageQuality-" + this.options.id + "' id='imageQuality-" + this.options.id + "' min='0' max='100' value='"+this.options.imageQualityValue+"' data-highlight='true'/>").
-				appendTo(imageOptions).slider();
-			this._on(this.imageQuality, {
-				"slidestop" : function () {
-					this.imageQualityValue = this.imageQuality.val();
-					this._changeImage();
-				},
-				"keyup" : function () {
-					this.imageQualityValue = this.imageQuality.val();
-					this._changeImage();
-				}
-			});
-
+			if(Rfs.editImage){
+				var imageOptions = $("<div data-role='collapsible'>").appendTo(div);
+				$("<h4>Options</h4>").appendTo(imageOptions);
+				this.textSize = $("<div>").appendTo(imageOptions);
+				$("<label for='imageSize-" + this.options.id + "'>Billede størrelse</label>").appendTo(imageOptions);
+				this.imageSize = $("<input type='number' data-type='range' name='imageSize-" + this.options.id + "' id='imageSize-" + this.options.id + "' min='0' max='100' value='"+this.options.imageSizeValue+"' data-highlight='true'/>").
+					appendTo(imageOptions).slider();
+				this._on(this.imageSize, {
+					"slidestop" : function () {
+						this.imageSizeValue = this.imageSize.val();
+						this._changeImage();
+					},
+					"keyup" : function () {
+						this.imageSizeValue = this.imageSize.val();
+						this._changeImage();
+					}
+				});
+				$("<label for='imageQuality-" + this.options.id + "'>Billede kvalitet</label>").appendTo(imageOptions);
+				this.imageQuality = $("<input type='number' data-type='range' name='imageQuality-" + this.options.id + "' id='imageQuality-" + this.options.id + "' min='0' max='100' value='"+this.options.imageQualityValue+"' data-highlight='true'/>").
+					appendTo(imageOptions).slider();
+				this._on(this.imageQuality, {
+					"slidestop" : function () {
+						this.imageQualityValue = this.imageQuality.val();
+						this._changeImage();
+					},
+					"keyup" : function () {
+						this.imageQualityValue = this.imageQuality.val();
+						this._changeImage();
+					}
+				});
+			}
 			this.hidden = $("<input type='hidden' id='" + this.options.id + "' name='" + this.options.id + "' val=''/>").appendTo(this.element);
 			if (this.options.required == 1) {
 				this.hidden.addClass('required');
