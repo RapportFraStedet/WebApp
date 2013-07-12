@@ -1,0 +1,1 @@
+function upload(){var a=$("#rapportForm")[0];a.action=Rfs.url+"/api/SaveFormsData.aspx";a.method="post";a.enctype="multipart/form-data";a.target="hiddenIFrame";a.submit();$(".current > span").width("100%");$(".current > span").hasClass("animate")||$(".current > span").addClass("animate");location="#/kommune/"+Rfs.kommune.Nr+"/"+Rfs.tema.Id+"/kvittering"};

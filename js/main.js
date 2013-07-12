@@ -2725,6 +2725,8 @@ function wmts(m) {
 			for (var i = 0; i < layer.matrixIds.length; i++) {
 				layer.options.resolutions[i] = layer.matrixIds[i].scaleDenominator * 0.00028;
 			}
+			layer.isBaseLayer = true;
+			layer.name = name;
 			layer.options.maxExtent = capabilities.contents.tileMatrixSets[options.matrixSet].bounds;
 			layer.maxExtent = layer.options.maxExtent;
 			layer.projection = new OpenLayers.Projection(m.Extension[0].ProjectionCode[0]);
