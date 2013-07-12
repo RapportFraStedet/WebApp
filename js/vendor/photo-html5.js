@@ -23,12 +23,9 @@ $(function () {
 			fieldcontain.append(label);
 			var div = $("<div class='cameraButtons'>").appendTo(fieldcontain);
 			if (html5File()) {
-				var fotoalbum = $("<div>Fotoalbum</div>").appendTo(div).
-					button({
-						inline : true
-					});
+				var fotoalbum = $("<div data-role='button' data-inline='true'>").appendTo(div).append("Fotoalbum")
 				if (this.options.permission == 1) {
-					fotoalbum.button('disable');
+					fotoalbum.prop('disabled',true);
 				}
 				this.file = $("<input data-role='none' class='fotoselect' type='file' name='B" + this.options.id + "' id='B" + this.options.id + "'/>").appendTo(fotoalbum);
 				this._on(this.file, {
@@ -36,45 +33,42 @@ $(function () {
 				});
 			}
 			if (html5Camera()) {
-				var kamera = $("<a href='#/kommune/" + Rfs.kommune.Nr + "/" + Rfs.tema.Id + "/kamera/" + this.options.id + "' data-role='button' data-inline='true' data-transition='slide'>Kamera</a>").appendTo(div).
-					button({
-						inline : true,
-						transition : 'slide'
-					});
+				var kamera = $("<a href='#/kommune/" + Rfs.kommune.Nr + "/" + Rfs.tema.Id + "/kamera/" + this.options.id + "' data-role='button' data-inline='true' data-transition='slide'>Kamera</a>").appendTo(div)
 				if (this.options.permission == 1) {
-					kamera.button('disable');
+					kamera.prop('disabled',true);
 				}
 			}
-			var imageOptions = $("<div data-role='collapsible'>").appendTo(div);
-			$("<h4>Options</h4>").appendTo(imageOptions);
-			this.textSize = $("<div>").appendTo(imageOptions);
-			$("<label for='imageSize-" + this.options.id + "'>Billede størrelse</label>").appendTo(imageOptions);
-			this.imageSize = $("<input type='number' data-type='range' name='imageSize-" + this.options.id + "' id='imageSize-" + this.options.id + "' min='0' max='100' value='"+this.options.imageSizeValue+"' data-highlight='true'/>").
-				appendTo(imageOptions).slider();
-			this._on(this.imageSize, {
-				"slidestop" : function () {
-					this.imageSizeValue = this.imageSize.val();
-					this._changeImage();
-				},
-				"keyup" : function () {
-					this.imageSizeValue = this.imageSize.val();
-					this._changeImage();
-				}
-			});
-			$("<label for='imageQuality-" + this.options.id + "'>Billede kvalitet</label>").appendTo(imageOptions);
-			this.imageQuality = $("<input type='number' data-type='range' name='imageQuality-" + this.options.id + "' id='imageQuality-" + this.options.id + "' min='0' max='100' value='"+this.options.imageQualityValue+"' data-highlight='true'/>").
-				appendTo(imageOptions).slider();
-			this._on(this.imageQuality, {
-				"slidestop" : function () {
-					this.imageQualityValue = this.imageQuality.val();
-					this._changeImage();
-				},
-				"keyup" : function () {
-					this.imageQualityValue = this.imageQuality.val();
-					this._changeImage();
-				}
-			});
-
+			if(Rfs.editImage){
+				var imageOptions = $("<div data-role='collapsible'>").appendTo(div);
+				$("<h4>Options</h4>").appendTo(imageOptions);
+				this.textSize = $("<div>").appendTo(imageOptions);
+				$("<label for='imageSize-" + this.options.id + "'>Billede størrelse</label>").appendTo(imageOptions);
+				this.imageSize = $("<input type='number' data-type='range' name='imageSize-" + this.options.id + "' id='imageSize-" + this.options.id + "' min='0' max='100' value='"+this.options.imageSizeValue+"' data-highlight='true'/>").
+					appendTo(imageOptions).slider();
+				this._on(this.imageSize, {
+					"slidestop" : function () {
+						this.imageSizeValue = this.imageSize.val();
+						this._changeImage();
+					},
+					"keyup" : function () {
+						this.imageSizeValue = this.imageSize.val();
+						this._changeImage();
+					}
+				});
+				$("<label for='imageQuality-" + this.options.id + "'>Billede kvalitet</label>").appendTo(imageOptions);
+				this.imageQuality = $("<input type='number' data-type='range' name='imageQuality-" + this.options.id + "' id='imageQuality-" + this.options.id + "' min='0' max='100' value='"+this.options.imageQualityValue+"' data-highlight='true'/>").
+					appendTo(imageOptions).slider();
+				this._on(this.imageQuality, {
+					"slidestop" : function () {
+						this.imageQualityValue = this.imageQuality.val();
+						this._changeImage();
+					},
+					"keyup" : function () {
+						this.imageQualityValue = this.imageQuality.val();
+						this._changeImage();
+					}
+				});
+			}
 			this.hidden = $("<input type='hidden' id='" + this.options.id + "' name='" + this.options.id + "' val=''/>").appendTo(this.element);
 			if (this.options.required == 1) {
 				this.hidden.addClass('required');

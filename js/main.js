@@ -711,6 +711,7 @@ var Rfs = {
 				Rfs.FeatureInfo = false;
 				Rfs.kvittering = "<h3>Tak for din indberetning</h3><p>Vil du foretage en ny indberetning?</p>";
 				Rfs.straks = "<p>Det er ikke tilladt at indberette på valgte placering.</p><p>Ret placeringen og prøv igen.</p>";
+				Rfs.editImage = false;
 				$("#kortnavbar").hide();
 				$("#backKommune").attr('href', '#/kommune/' + Rfs.kommune.Nr);
 				var formsUrl = "";
@@ -769,6 +770,8 @@ var Rfs = {
 									Rfs.kvittering = ext.kvittering[0];
 								if (ext.straks)
 									Rfs.straks = ext.straks[0];
+								if (ext.editImage)
+									Rfs.editImage = ext.editImage[0]=="true";
 								if (ext.type[0] != '-1' && ext.type[0] != '0') {
 									$('#tegnList').html("<li data-role='divider' data-theme='a'>Tegneværktøjer</li>");
 									Rfs.useDrawControl = true;
@@ -2691,7 +2694,8 @@ function createMap() {
 	}
 }
 function wmts(m) {
-	OpenLayers.ProxyHost = "http://www.rapportfrastedet.dk/proxy.cgi?url=";
+	if(typeof(cordova)!=="undefined")
+		OpenLayers.ProxyHost = "proxy.cgi?url=";
 	var url = m.Extension[0].Options[0].url[0].replace(/%26/gi, '&');
 	OpenLayers.Request.GET({
 		url : url,
@@ -2721,6 +2725,8 @@ function wmts(m) {
 			for (var i = 0; i < layer.matrixIds.length; i++) {
 				layer.options.resolutions[i] = layer.matrixIds[i].scaleDenominator * 0.00028;
 			}
+			layer.isBaseLayer = true;
+			layer.name = name;
 			layer.options.maxExtent = capabilities.contents.tileMatrixSets[options.matrixSet].bounds;
 			layer.maxExtent = layer.options.maxExtent;
 			layer.projection = new OpenLayers.Projection(m.Extension[0].ProjectionCode[0]);
@@ -2731,7 +2737,7 @@ function wmts(m) {
 			map.maxExtent = layer.maxExtent;
 			addLayerToList({
 				ol : layer,
-				name : layer.name,
+				name : name,
 				visible : true
 			});
 			$('#layerslist').listview('refresh');

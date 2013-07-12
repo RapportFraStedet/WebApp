@@ -18,12 +18,12 @@
 
         <link rel=stylesheet href="css/normalize.css">
 		<link rel=stylesheet href="css/jquery.mobile-1.3.1.min.css"/>
-		<link rel=stylesheet href='css/99823e4.css'>
+		<link rel=stylesheet href='css/1338529.css'>
         <script src="js/vendor/modernizr.custom.40852.js"></script>
-        <script src="js/vendor/jquery-1.9.1.min.js"></script>
+        <script src="js/vendor/jquery-1.10.2.js"></script>
 		<script src="js/vendor/path.js"></script>
 		<script src="js/vendor/mobileinit.js"></script>
-		<script src="js/vendor/jquery.mobile-1.3.1.min.js"></script>
+		<script src="js/vendor/jquery.mobile-1.3.1.js"></script>
 		<script src="js/vendor/jquery.validate.min.js"></script>
 		
 		<script src="js/vendor/messages_da.js"></script>
@@ -31,7 +31,7 @@
 		<script src="js/vendor/OpenLayers.js"></script>
 		<script src="js/vendor/MapGuideGetFeatureInfo.js"></script>
 		<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
-        <script src='js/821e155.js'></script>
+        <script src='js/b6ea3a3.js'></script>
         
         <script>
             var _gaq=[['_setAccount','UA-24623853-2'],['_trackPageview']];
@@ -54,7 +54,7 @@
             <p>Rapporter her, så hjælper du med til at holde kommunen kørende.</p>
             <a onclick="geoLocate()" data-role=button data-theme=b>Start</a>
             
-            <cite>Version 2.3</cite> 
+            <cite>Version 2.4</cite> 
 			<!--[if lt IE 9]><p>Du bruger en forældet browser. <a href="http://browsehappy.com/">Upgrader din browser</a> eller <a href="http://www.google.com/chromeframe/?redirect=true">installer Google Chrome Frame</a> for en bedre oplevelse af dette site.</p><![endif]-->
 			<div id=app></div>
         </div>
@@ -265,8 +265,8 @@
 		</div>
         <div data-role=popup id=GeometryError class=ui-content data-theme=e style="max-width:350px;" data-history=false>
 			<a href="#" data-rel=back data-role=button data-theme=a data-icon=delete data-iconpos=notext class=ui-btn-right>Luk</a>
-			<p>Det er ikke tilladt at indberette på valgte placering.</p>
-            <p>Ret placeringen og prøv igen.</p>
+			<div id=straks></div>
+			
 		</div>
 		<div data-role=popup id=LocationError class=ui-content data-theme=e style="max-width:350px;" data-history=false>
 			<a href="#" data-rel=back data-role=button data-theme=a data-icon=delete data-iconpos=notext class=ui-btn-right>Luk</a>
