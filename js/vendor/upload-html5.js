@@ -4,7 +4,7 @@ function upload() {
 	if ($(".current > span").hasClass("animate"))
 		$(".current > span").removeClass("animate");
 	var xhr = new XMLHttpRequest();
-	xhr.open('POST', Rfs.url + "/api/SaveFormsData.aspx", true);
+	xhr.open('POST', Rfs.url + "/api/SaveFormsData2.aspx", true);
 	xhr.onerror = function () {
 		alert("error");
 	};

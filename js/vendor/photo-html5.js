@@ -93,18 +93,20 @@ $(function () {
 						
 						self.imageA.attr("src", data).css('display', 'inline');
 						self.hidden.val(data);
-						var info = data.split(',');
-						var t = "";
-						if(info.length>0){
-							
-							var si = atob(info[1]).length;
-							if (si > 1000000) {
-								t = (si / (1024 * 1024)).toFixed(1) + ' Mb, ';
-							} else if (si > 1000) {
-								t = Math.round(si / (1024)) + ' Kb, ';
+						if(Rfs.editImage){
+							var info = data.split(',');
+							var t = "";
+							if(info.length>0){
+						
+								var si = atob(info[1]).length;
+								if (si > 1000000) {
+									t = (si / (1024 * 1024)).toFixed(1) + ' Mb, ';
+								} else if (si > 1000) {
+									t = Math.round(si / (1024)) + ' Kb, ';
+								}
 							}
+							self.textSize.text(t+ width + '☓' + height);
 						}
-						self.textSize.text(t+ width + '☓' + height);
 						if (width < $(".cameraButtons").width()) {
 							self.imageA.width(width);
 						} else {

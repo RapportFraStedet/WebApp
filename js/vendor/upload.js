@@ -1,6 +1,6 @@
 function upload() {
 	var form = $("#rapportForm")[0];
-	form.action = Rfs.url + "/api/SaveFormsData.aspx";
+	form.action = Rfs.url + "/api/SaveFormsData2.aspx";
 	form.method = "post";
 	form.enctype = "multipart/form-data";
 	form.target = "hiddenIFrame";

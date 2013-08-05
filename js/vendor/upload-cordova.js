@@ -12,10 +12,25 @@ var images;
 function win(r) {
 	var obj = $.parseJSON(r.response);
 	if (typeof obj.id === "undefined") {
-		$("#errorMessage").html("<h3>" + response.Message + "</h3><p>" + response.ExceptionMessage + "</p>");
+		$("#errorMessage").html("<h3>Fejl!</h3><p>" + obj.error + "</p>");
 		location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id + '/kvitteringfejl';
 		
-	} else {
+	} else if (images.length > currentImage && images[currentImage].src && images[currentImage].src!='') {
+		var image = images[currentImage];
+		currentImage++;
+		var options = new FileUploadOptions();
+		options.fileKey = image.id.replace('A', '');
+		options.fileName = obj.id+'-'+options.fileKey+'.jpg';
+		options.mimeType = "image/jpeg";
+		var ft = new FileTransfer();
+		ft.onprogress = function (e) {
+			if (e.lengthComputable) {
+				$(".current > span").width(e.loaded / e.total * 100 + "%");
+			}
+		};
+		ft.upload(image.src, encodeURI(Rfs.url + "/Upload2.aspx/UploadImage"), win, fail, options);
+	}
+	else {
 		location = '#/kommune/' + Rfs.kommune.Nr + '/' + Rfs.tema.Id + '/kvittering';
 	}
 }
@@ -48,7 +63,7 @@ function upload() {
 			if ($(".current > span").hasClass("animate"))
 				$(".current > span").removeClass("animate");
 			var xhr = new XMLHttpRequest();
-			xhr.open('POST', Rfs.url + "/api/SaveFormsData.aspx", true);
+			xhr.open('POST', Rfs.url + "/api/SaveFormsData2.aspx", true);
 			xhr.onerror = function () {
 				alert("error");
 			};
@@ -70,7 +85,7 @@ function upload() {
 			xhr.send(formData);
 		} else {
 			var form = $("#rapportForm")[0];
-			form.action = Rfs.url + "/api/SaveFormsData.aspx";
+			form.action = Rfs.url + "/api/SaveFormsData2.aspx";
 			form.method = "post";
 			form.enctype = "multipart/form-data";
 			form.target = "hiddenIFrame";

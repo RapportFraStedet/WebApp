@@ -40,20 +40,29 @@ You should have received a copy of the GNU General Public License along with "Ra
 			}
 			this._on(this.fotoalbum,{
 				'click' : function(){
+					var options = {
+						quality : 100,
+						destinationType : Camera.DestinationType.DATA_URL,//.FILE_URI,
+						sourceType : Camera.PictureSourceType.PHOTOLIBRARY
+					}
+					if(!Rfs.editImage){
+						options.destinationType = Camera.DestinationType.FILE_URI
+					}
 					navigator.camera.getPicture((function(self){
 							return function(blob){
-								this.resultFile = blob;
-								this._changeImage();
+								if(Rfs.editImage){
+									self.resultFile = "data:image/jpeg;base64,"+blob;
+									self._changeImage();
+								} else {
+									self.imageA.attr("src", blob).css('display', 'inline').addClass('imageCamera');
+									self.hidden.val("data:image/jpg;base64,");
+								}
 							};
 						})(this),
 						function(message){
 							var msg = 'Der er sket en fejl: ' + message;
 							navigator.notification.alert(msg, null, 'Fejl');
-						}, {
-						quality : 100,
-						destinationType : Camera.DestinationType.DATA_URL,//.FILE_URI,
-						sourceType : Camera.PictureSourceType.PHOTOLIBRARY
-					});
+						}, options);
 				}
 			});
 			
@@ -66,19 +75,30 @@ You should have received a copy of the GNU General Public License along with "Ra
 			}
 			this._on(this.kamera,{
 				'click' : function(){
+					var options = {
+						quality : 100,
+						destinationType : Camera.DestinationType.DATA_URL//.FILE_URI,
+						
+					}
+					if(!Rfs.editImage){
+						options.destinationType = Camera.DestinationType.FILE_URI
+					}
 					navigator.camera.getPicture((function(self){
 							return function(blob){
-								this.resultFile = blob;
-								this._changeImage();
+								if(Rfs.editImage){
+									self.resultFile = "data:image/jpeg;base64,"+blob;
+									self._changeImage();
+								} else {
+									self.imageA.attr("src", blob).css('display', 'inline').addClass('imageCamera');
+									self.hidden.val("data:image/jpg;base64,");
+								}
+								
 							};
 						})(this),
 						function(message){
 							var msg = 'Der er sket en fejl: ' + message;
 							navigator.notification.alert(msg, null, 'Fejl');
-						}, {
-						quality : 100,
-						destinationType : Camera.DestinationType.DATA_URL//FILE_URI,
-					});
+						}, options);
 				}
 			});
 			if(Rfs.editImage){
@@ -133,24 +153,26 @@ You should have received a copy of the GNU General Public License along with "Ra
 			        quality: this.imageQualityValue,
 			        //rotate: 90,
 			        callback: (function(self){return function(data, width, height) {
-						self.imageA.attr("src", data).css('display', 'inline');
+						self.imageA.attr("src", data).css('display', 'inline').removeClass('imageCamera');
 						self.hidden.val(data);
-						var b = data.split(',')[1];
-						si = atob(b).length;
-						if (si > 1000000) {
-							self.textSize.text((si / (1024 * 1024)).toFixed(1) + ' Mb, ' + width + '☓' + height);
-						} else if (si > 1000) {
-							self.textSize.text(Math.round(si / (1024)) + ' Kb, ' + width + '☓' + height);
+						var info = data.split(',');
+						var t = "";
+						if(info.length>0){
+							var si = atob(info[1]).length;
+							if (si > 1000000) {
+								t = (si / (1024 * 1024)).toFixed(1) + ' Mb, ';
+							} else if (si > 1000) {
+								t = Math.round(si / (1024)) + ' Kb, ';
+							}
 						}
+						self.textSize.text(t+ width + '☓' + height);
 						if (width < $(".cameraButtons").width()) {
 							self.imageA.width(width);
 						} else {
 							self.imageA.css('width', '100%');
-						}
-			            
+						}			            
 			        };})(this)
 			    });
-				
 		},
 		
  		// events bound via _on are removed automatically
