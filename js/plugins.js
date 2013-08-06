@@ -43,15 +43,34 @@ function html5File() {
 
 if (typeof(cordova)!="undefined") {
 	Modernizr.load({
-		load : 'js/vendor/camera-cordova.js'
+		load : ['js/vendor/photo-cordova.js','js/vendor/upload-cordova.js','js/vendor/exif.js','js/vendor/canvasResize.js']
 	});
+	
 } else if (html5File() || html5Camera()) {
 	Modernizr.load({
-		load : 'js/vendor/camera-html5.js'
+		load : ['js/vendor/photo-html5.js','js/vendor/exif.js','js/vendor/canvasResize.js']//,'js/vendor/canvas-to-blob.js','js/vendor/load-image.min.js']
 	});
+	if(window.FormData){
+		Modernizr.load({
+			load : 'js/vendor/upload-html5.js'
+		});
+	} else {
+		Modernizr.load({
+			load : 'js/vendor/upload.js'
+		});
+	}
 } else {
 	Modernizr.load({
-		load : 'js/vendor/camera.js'
+		load : 'js/vendor/photo.js'
 	});
+	if(window.FormData){
+		Modernizr.load({
+			load : 'js/vendor/upload-html5.js'
+		});
+	} else {
+		Modernizr.load({
+			load : 'js/vendor/upload.js'
+		});
+	}
 }
 
