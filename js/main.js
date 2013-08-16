@@ -2694,7 +2694,7 @@ function createMap() {
 	}
 }
 function wmts(m) {
-	if(typeof(cordova)!=="undefined")
+	if(typeof(cordova)==="undefined")
 		OpenLayers.ProxyHost = "proxy.cgi?url=";
 	var url = m.Extension[0].Options[0].url[0].replace(/%26/gi, '&');
 	OpenLayers.Request.GET({
