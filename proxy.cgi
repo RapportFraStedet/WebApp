@@ -22,7 +22,7 @@ allowedHosts = ['www.openlayers.org', 'openlayers.org',
                 'www.openstreetmap.org', 'sample.azavea.com',
                 'v2.suite.opengeo.org', 'v-swe.uni-muenster.de:8080', 
                 'vmap0.tiles.osgeo.org', 'www.openrouteservice.org',
-                'maps.wien.gv.at', 'wfs.plansystem.dk:80', 'kortforsyningen.kms.dk', 'rtv04:8008']
+                'maps.wien.gv.at', 'wfs.plansystem.dk:80', 'kortforsyningen.kms.dk', 'www.rapportfrastedet.dk']
 
 method = os.environ["REQUEST_METHOD"]
 
